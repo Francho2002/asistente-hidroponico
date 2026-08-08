@@ -1,56 +1,48 @@
 # Raíz — Asistente hidropónico local-first
 
-Aplicación para configurar un sistema hidropónico real, seguir el ciclo completo y convertir mediciones y acciones en historial, tareas y avisos contextuales. No requiere cuenta ni backend: el estado autoritativo se guarda en IndexedDB y puede importarse o exportarse como JSON.
-
-## Qué incluye
-
-- Plantilla importable **“Eyeballz — 4 DWC independientes”**, editable y separada del programa.
-- Relación histórica Planta ↔ DWC, sin duplicar el estado actual.
-- Registro agrupado de pH, EC y temperatura de solución por DWC.
-- Reposición de agua, cambios de solución, nutrición, observaciones e inventario.
-- Plan de semanas 0–14 con dosis, pH, EC, humedad, luz y temperatura objetivo.
-- Tareas recurrentes, evaluación de valores, avisos y notificaciones del navegador.
-- Historial ambiental importable desde una integración local SonoffLAN.
-- Copias de seguridad y plantillas JSON portables.
-- Interfaz adaptable a escritorio y móvil.
+Aplicación estática para seguir un cultivo DWC localmente. No usa framework, dependencias ni compilación: HTML semántico, CSS nativo y módulos ES del navegador.
 
 ## Ejecutar localmente
 
-Requiere Node.js 22.13 o posterior y pnpm.
+Desde esta carpeta, iniciá cualquier servidor estático. Por ejemplo:
 
 ```bash
-pnpm install
-pnpm dev
+python -m http.server 3000
 ```
 
-La aplicación queda disponible en `http://localhost:3000`.
+Abrí `http://localhost:3000`. No abras `index.html` directamente: la plantilla demostrativa se carga como JSON y los navegadores solo permiten esa lectura a través de HTTP.
 
-## Verificar
+## Arquitectura
+
+- `index.html`: documento semántico, metadatos y entrada de la aplicación.
+- `styles.css`: diseño responsive claro/oscuro; la preferencia se conserva en `localStorage` y se aplica antes del primer renderizado.
+- `js/app.js`: interfaz, formularios, historial, alertas, gráfico Canvas y acciones del cultivo.
+- `js/domain.js`: creación del ciclo, tareas iniciales, semanas y exportación de respaldo.
+- `js/storage.js`: IndexedDB, la fuente autoritativa de los datos locales.
+- `js/template.js`: carga y validación de plantillas JSON sin bundler.
+
+## Funciones incluidas
+
+- Ejemplo e importación de la plantilla Eyeballz con 4 DWC independientes y asignaciones Planta↔DWC.
+- Plan confirmado de semanas 0 a 14, tareas, alertas y notificaciones del navegador.
+- Mediciones agrupadas de pH, EC y temperatura por DWC; reposición, cambio de solución, observaciones y nutrición con descuento de inventario.
+- Historial, inventario, configuración de sistema/asignaciones/fuentes de datos, importación SonoffLAN y gráfico Canvas de humedad.
+- Importación de plantillas o copias, exportación de backup y eliminación explícita de datos locales.
+
+## Archivos JSON
+
+La plantilla demostrativa está en [examples/eyeballz-4-dwc.example.json](examples/eyeballz-4-dwc.example.json). Para SonoffLAN se acepta una lectura, un arreglo, o un objeto con `readings`; cada lectura usa `temperatura`/`temperature`, `humedad`/`humidity` y una fecha opcional.
+
+La aplicación no almacena credenciales de eWeLink. Una futura conexión LAN continua deberá pasar por un puente SonoffLAN local accesible para el navegador.
+
+## Pruebas
 
 ```bash
-pnpm lint
-pnpm exec tsc --noEmit
-pnpm test
+npm test
 ```
 
-## Importar lecturas de Sonoff
-
-En **Configuración → SonoffLAN → Importar lecturas**, pegá una lectura o un arreglo JSON. Se aceptan nombres de campo en español o inglés:
-
-```json
-[
-  {
-    "fecha": "2026-08-08T12:00:00.000Z",
-    "temperatura": 24.2,
-    "humedad": 72,
-    "humidificadorEncendido": true
-  }
-]
-```
-
-La importación mantiene las credenciales de eWeLink fuera de la aplicación. Una conexión LAN continua requiere un puente SonoffLAN local que pueda ser consultado por el navegador con CORS habilitado.
+Las pruebas solo usan Node nativo y verifican la estructura estática, la plantilla, los módulos de navegador y la ausencia del stack anterior.
 
 ## Documentación
 
 - [Especificación funcional](docs/especificacion-funcional.md)
-- [Plantilla Eyeballz](examples/eyeballz-4-dwc.example.json)
