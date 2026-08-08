@@ -62,6 +62,16 @@ La app no puede ni debe llamar directamente al puerto interno del THR320D: Sonof
 
 El token queda únicamente en el almacenamiento local de ese navegador, nunca en una plantilla o backup, y se borra al eliminar los datos locales. Desde GitHub Pages la URL de Home Assistant debe usar HTTPS y permitir CORS para `https://francho2002.github.io`; una IP o URL `http://` local será bloqueada por el navegador. Consultá la [API REST de Home Assistant](https://developers.home-assistant.io/docs/api/rest/) y la configuración de [CORS](https://www.home-assistant.io/integrations/http/#cors_allowed_origins).
 
+## Sincronizar sin nube
+
+La sincronización funciona con un archivo, sin cuenta, servidor ni conexión entre dispositivos:
+
+1. En el primer dispositivo, abrí **Configuración → Sincronizar entre dispositivos → Exportar para otro dispositivo**.
+2. Transferí el archivo por el medio que prefieras y, en el segundo dispositivo, elegí **Fusionar copia**.
+3. Revisá la previsualización, resolvé los conflictos y aplicá la fusión. Luego exportá el resultado y fusionálo de vuelta en el primer dispositivo.
+
+Solo se puede fusionar un archivo cuyo `cultivoUid` coincide exactamente con el cultivo abierto. Los registros ausentes no se borran. Cada dispositivo usa una identidad opaca local y relojes vectoriales por registro; cambios simultáneos se muestran para elegir, no se pisan silenciosamente. La conexión/token de Home Assistant no viaja en archivos. **Deshacer última sincronización** permanece disponible hasta el siguiente cambio local.
+
 ## Pruebas
 
 ```bash

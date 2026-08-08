@@ -12,6 +12,8 @@ import { buildAiTemplatePrompt, copyTemplatePrompt } from "./features/plantilla-
 import { createSonoffHomeAssistant } from "./features/sonoff-home-assistant.js";
 import { actionForm, createRegistroFeatures } from "./features/registro.js";
 import { createStore } from "./core/store.js";
+import { getDeviceId, stampLocalMutation } from "./core/sync.js";
+import { createSyncFeatures } from "./features/sincronizacion.js";
 import {
   downloadJson,
   importCultivationFile,
@@ -37,7 +39,13 @@ const app = $("#app"),
   modal = $("#modal"),
   form = $("#modal-form");
 const routeStage = $("#route-stage");
-const store = createStore({ now, saveState, normalizeCultivation });
+const store = createStore({
+  now,
+  saveState,
+  normalizeCultivation,
+  deviceId: getDeviceId(localStorage),
+  stampLocalMutation,
+});
 const state = store.state;
 let route = "panel",
   modalAction = null,
@@ -108,6 +116,17 @@ const registro = createRegistroFeatures({
   notify,
   closeModal: () => closeModal(),
   showToast,
+});
+const sincronizacion = createSyncFeatures({
+  cultivation,
+  store,
+  now,
+  showToast,
+  openModal: (...args) => openModal(...args),
+  closeModal: () => closeModal(),
+  setModalAction: (action) => { modalAction = action; },
+  render,
+  escape,
 });
 function latest(c, dwcId, type = "medicion_solucion") {
   return c.eventos
@@ -224,6 +243,7 @@ async function mountPage(name) {
       escape,
       plantFor,
       sonoffStatus: sonoff.getStatus(),
+      canUndoSync: sincronizacion.canUndo(),
     });
     bindSettings();
     enhanceSettings(c);
@@ -255,6 +275,9 @@ function bindSettings() {
   $("#settings-sonoff").onclick = openSonoffConfiguration;
   $("#settings-sonoff-refresh").onclick = refreshSonoff;
   $("#settings-ai-template").onclick = openAiTemplatePrompt;
+  $("#sync-export").onclick = sincronizacion.exportForOther;
+  $("#sync-merge").onclick = sincronizacion.openMerge;
+  $("#sync-undo").onclick = sincronizacion.undo;
   $("#delete-local").onclick = confirmDelete;
 }
 function scopeName(c, scope = {}) {
@@ -383,6 +406,8 @@ async function importFile(file) {
     showToast(
       type === "plantilla"
         ? "Plantilla importada como cultivo nuevo."
+        : type === "sincronizacion"
+          ? "Copia de sincronización importada como cultivo inicial. Para unir dos copias del mismo cultivo usá Fusionar copia."
         : "Copia de seguridad restaurada.",
     );
   } catch (e) {
@@ -459,6 +484,7 @@ async function submitModal(data) {
   if (action === "week") return ciclo.advanceWeek();
   if (action === "sonoff")
     return ambiental.importSonoff(String(data.get("json") || ""));
+  if (action === "sync-apply") return sincronizacion.apply(data);
   if (action === "sonoff-config") {
     const result = await sonoff.configure({
       baseUrl: data.get("baseUrl"),

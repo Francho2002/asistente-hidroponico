@@ -7,7 +7,7 @@ export async function loadEyeballzTemplate() {
 export function validateTemplate(file) {
   if (!file || file.formato !== "asistente-cultivo" || file.version !== 1)
     throw new Error("Formato o versión de archivo no reconocidos.");
-  if (!["plantilla", "copia-seguridad"].includes(file.tipo))
+  if (!["plantilla", "copia-seguridad", "sincronizacion"].includes(file.tipo))
     throw new Error(
       "El archivo debe ser una plantilla o una copia de seguridad.",
     );
@@ -55,6 +55,17 @@ export function validateTemplate(file) {
       throw new Error(
         "La copia de seguridad contiene identificadores o plan semanales inválidos.",
       );
+  }
+  if (file.tipo === "sincronizacion") {
+    const c = file.cultivo;
+    if (!c || typeof file.cultivoUid !== "string" || c.id !== file.cultivoUid)
+      throw new Error("La copia de sincronización no tiene una identidad de cultivo válida.");
+    validateTemplate({
+      formato: file.formato,
+      version: file.version,
+      tipo: "copia-seguridad",
+      cultivo: c,
+    });
   }
   return file;
 }

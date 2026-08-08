@@ -1,3 +1,5 @@
+import { ensureSyncMetadata } from "./core/sync.js";
+
 export const clone = (value) => structuredClone(value);
 export const id = (prefix) =>
   `${prefix}-${crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
@@ -86,7 +88,7 @@ export function normalizeCultivation(cultivation) {
       }))
       .filter((reading) => Number.isFinite(reading.temperatura) && Number.isFinite(reading.humedad));
   }
-  return cultivation;
+  return ensureSyncMetadata(cultivation);
 }
 export function currentPlan(cultivation) {
   return (

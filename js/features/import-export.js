@@ -15,6 +15,9 @@ export async function importCultivationFile(file, api) {
     parsed.tipo === "plantilla"
       ? api.createCultivation(parsed)
       : api.normalizeCultivation(parsed.cultivo);
-  await api.store.add(cultivation);
+  await api.store.add(cultivation, {
+    preserveSyncMetadata:
+      parsed.tipo === "sincronizacion" || parsed.tipo === "copia-seguridad",
+  });
   return parsed.tipo;
 }

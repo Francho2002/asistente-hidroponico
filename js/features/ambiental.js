@@ -61,13 +61,17 @@ export function createAmbientalFeatures(api) {
     readings,
     source = { modo: "automatica", etiqueta: "SonoffLAN" },
   ) {
+    const identifiedReadings = readings.map((reading) => ({
+      ...reading,
+      id: reading.id || api.id("lectura"),
+    }));
     const notices = [];
     await api.updateCultivation((cultivation) => {
       cultivation.lecturasAmbientales = [
         ...(cultivation.lecturasAmbientales || []),
-        ...readings.map((reading) => ({ ...reading, fuente: source })),
+        ...identifiedReadings.map((reading) => ({ ...reading, fuente: source })),
       ].sort((a, b) => a.fecha.localeCompare(b.fecha));
-      readings.forEach((reading) => {
+      identifiedReadings.forEach((reading) => {
         cultivation.eventos.push({
           id: api.id("evento"),
           tipo: "lectura_ambiental",

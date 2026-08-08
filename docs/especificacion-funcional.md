@@ -1,6 +1,8 @@
 # Especificación funcional
 
 Estado: borrador vivo  
+
+> Actualización de sincronización: se sincroniza por archivos, sin backend ni nube. Cada dispositivo usa identidad opaca local y relojes vectoriales. **Fusionar copia** exige el mismo `cultivoUid`, nunca empareja por nombre ni borra registros ausentes. Los cambios simultáneos requieren decisión explícita y la etapa no retrocede automáticamente. El token Home Assistant y el checkpoint de undo son solo locales.
 Última actualización: 8 de agosto de 2026
 
 Este documento consolida las decisiones funcionales tomadas hasta ahora. El caso **Eyeballz — 4 DWC independientes** es una plantilla demostrativa editable, no una configuración fija ni predeterminada de la aplicación.
