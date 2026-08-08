@@ -15,8 +15,13 @@ Abrí `http://localhost:3000`. No abras `index.html` directamente: la plantilla 
 ## Arquitectura
 
 - `index.html`: documento semántico, metadatos y entrada de la aplicación.
-- `styles.css`: diseño responsive claro/oscuro; la preferencia se conserva en `localStorage` y se aplica antes del primer renderizado.
-- `js/app.js`: interfaz, formularios, historial, alertas, gráfico Canvas y acciones del cultivo.
+- `styles.css`: sistema visual responsive claro/oscuro, con una paleta neutral y acento azul.
+- `js/app.js`: punto de arranque y coordinación de la aplicación.
+- `js/core/store.js`: estado local del cultivo, restauración y persistencia.
+- `js/features/`: registros, ciclo, ambiente e importación/exportación.
+- `js/ui/router.js`: rutas hash, historial del navegador y transiciones entre páginas.
+- `js/ui/pages/`: páginas independientes de panel, historial, inventario y configuración.
+- `js/ui/modal.js` y `js/ui/shared.js`: diálogo seguro y componentes compartidos.
 - `js/domain.js`: creación del ciclo, tareas iniciales, semanas y exportación de respaldo.
 - `js/storage.js`: IndexedDB, la fuente autoritativa de los datos locales.
 - `js/template.js`: carga y validación de plantillas JSON sin bundler.
@@ -28,6 +33,11 @@ Abrí `http://localhost:3000`. No abras `index.html` directamente: la plantilla 
 - Mediciones agrupadas de pH, EC y temperatura por DWC; reposición, cambio de solución, observaciones y nutrición con descuento de inventario.
 - Historial, inventario, configuración de sistema/asignaciones/fuentes de datos, importación SonoffLAN y gráfico Canvas de humedad.
 - Importación de plantillas o copias, exportación de backup y eliminación explícita de datos locales.
+- Navegación SPA sin recargar: cada página se desmonta y entra con transición, incluyendo Atrás y Adelante del navegador.
+
+## Publicación
+
+La versión pública se publica con GitHub Pages: [francho2002.github.io/asistente-hidroponico](https://francho2002.github.io/asistente-hidroponico/).
 
 ## Archivos JSON
 

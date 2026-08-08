@@ -7,18 +7,20 @@ import { normalizeCultivation } from "../js/domain.js";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 test("entrega una aplicación estática con módulos ES", async () => {
-  const [html, css, app, storage] = await Promise.all([
+  const [html, css, app, storage, panel] = await Promise.all([
     read("index.html"),
     read("styles.css"),
     read("js/app.js"),
     read("js/storage.js"),
+    read("js/ui/pages/panel.js"),
   ]);
   assert.match(html, /<main id="main"/);
   assert.match(html, /type="module" src="js\/app\.js"/);
   assert.match(html, /public\/og\.png/);
   assert.match(html, /public\/favicon\.svg/);
   assert.match(css, /data-theme/);
-  assert.match(app, /canvas/);
+  assert.match(css, /\[hidden\]\s*\{\s*display:\s*none\s*!important/);
+  assert.match(panel, /canvas/);
   assert.match(storage, /indexedDB/);
 });
 test("mantiene la plantilla Eyeballz y el ciclo semanal completo", async () => {
@@ -47,9 +49,26 @@ test("rechaza copias de seguridad incompletas", () => {
 });
 test("normaliza lecturas ambientales heredadas", () => {
   const cultivation = normalizeCultivation({
-    eventos: [{ tipo: "lectura_ambiental", fecha: "2026-08-08T12:00:00.000Z", valores: { temperaturaAmbiente: { valor: 24.5 }, humedad: { valor: 62 }, humidificadorEncendido: { valor: true } } }],
+    eventos: [
+      {
+        tipo: "lectura_ambiental",
+        fecha: "2026-08-08T12:00:00.000Z",
+        valores: {
+          temperaturaAmbiente: { valor: 24.5 },
+          humedad: { valor: 62 },
+          humidificadorEncendido: { valor: true },
+        },
+      },
+    ],
   });
-  assert.deepEqual(cultivation.lecturasAmbientales, [{ fecha: "2026-08-08T12:00:00.000Z", temperatura: 24.5, humedad: 62, humidificadorEncendido: true }]);
+  assert.deepEqual(cultivation.lecturasAmbientales, [
+    {
+      fecha: "2026-08-08T12:00:00.000Z",
+      temperatura: 24.5,
+      humedad: 62,
+      humidificadorEncendido: true,
+    },
+  ]);
 });
 test("no deja código legado", async () => {
   const app = await read("js/app.js");
@@ -57,6 +76,54 @@ test("no deja código legado", async () => {
     app,
     /submitModalLegacy|importSonoffLegacy|saveSettingsLegacy/,
   );
+  assert.doesNotMatch(app, /[ÃÂ]/);
+});
+test("navega como SPA y el diálogo permite cancelar sin validar", async () => {
+  const [html, app, router, modal] = await Promise.all([
+    read("index.html"),
+    read("js/app.js"),
+    read("js/ui/router.js"),
+    read("js/ui/modal.js"),
+  ]);
+  assert.match(html, /id="route-stage"/);
+  assert.doesNotMatch(html, /id="panel-view"/);
+  assert.match(html, /data-modal-close/);
+  assert.match(html, /id="modal-submit" type="submit"/);
+  assert.match(app, /createHashRouter/);
+  assert.match(router, /hashchange/);
+  assert.match(router, /route-leave/);
+  assert.match(router, /navigationId/);
+  assert.match(modal, /button\.type = "button"/);
+  assert.match(modal, /dialog\.addEventListener\("cancel"/);
+});
+test("separa rutas, páginas y funcionalidades en módulos nativos", async () => {
+  const app = await read("js/app.js");
+  for (const module of [
+    "./ui/router.js",
+    "./ui/modal.js",
+    "./ui/pages/panel.js",
+    "./ui/pages/historial.js",
+    "./ui/pages/inventario.js",
+    "./ui/pages/configuracion.js",
+    "./features/ambiental.js",
+    "./features/registro.js",
+  ]) {
+    assert.match(
+      app,
+      new RegExp(module.replaceAll(".", "\\.").replaceAll("/", "\\/")),
+    );
+  }
+});
+test("no duplica mutaciones de registro en el bootstrap", async () => {
+  const [app, registro, ciclo] = await Promise.all([
+    read("js/app.js"),
+    read("js/features/registro.js"),
+    read("js/features/ciclo.js"),
+  ]);
+  assert.match(app, /return registro\.submit\(action, data\)/);
+  assert.doesNotMatch(app, /Código de migración|tipo: "medicion_solucion"/);
+  assert.match(registro, /tipo: "medicion_solucion"/);
+  assert.match(ciclo, /async function saveSettings/);
 });
 test("no deja fuentes ni configuración del stack anterior", async () => {
   for (const file of [

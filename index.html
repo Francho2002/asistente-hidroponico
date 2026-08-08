@@ -36,7 +36,7 @@
   <body>
     <a class="skip-link" href="#main">Ir al contenido</a>
     <header class="topbar">
-      <a class="brand" href="#inicio" aria-label="Raíz, inicio"
+      <a class="brand" href="#/panel" aria-label="Raíz, panel"
         ><span aria-hidden="true">◒</span><b>Raíz</b
         ><small>Asistente hidropónico</small></a
       >
@@ -83,37 +83,22 @@
           </div>
         </aside>
       </section>
-      <section id="app" hidden>
-        <div class="page-heading">
-          <div>
-            <p class="eyebrow" id="week-label">Semana 0</p>
-            <h1 id="cultivation-title">Cultivo</h1>
-            <p id="cultivation-subtitle"></p>
-          </div>
-          <div class="actions">
-            <button id="notification-button" class="secondary">
-              Activar avisos</button
-            ><button id="new-measurement" class="primary">+ Medición</button>
-          </div>
-        </div>
-        <section id="panel-view" class="view"></section>
-        <section id="history-view" class="view" hidden></section>
-        <section id="inventory-view" class="view" hidden></section>
-        <section id="settings-view" class="view" hidden></section>
+      <section id="app" hidden aria-live="polite">
+        <div id="route-stage" class="route-stage"></div>
       </section>
     </main>
     <dialog id="modal">
-      <form id="modal-form" method="dialog">
+      <form id="modal-form">
         <header>
           <h2 id="modal-title"></h2>
-          <button value="cancel" class="icon-button" aria-label="Cerrar">
+          <button type="button" data-modal-close class="icon-button" aria-label="Cerrar">
             ×
           </button>
         </header>
         <div id="modal-body"></div>
         <footer>
-          <button value="cancel" class="secondary">Cancelar</button
-          ><button id="modal-submit" value="default" class="primary">
+          <button type="button" data-modal-close class="secondary">Cancelar</button
+          ><button id="modal-submit" type="submit" class="primary">
             Guardar
           </button>
         </footer>
