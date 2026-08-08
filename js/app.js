@@ -8,6 +8,8 @@ import { renderInventoryPage } from "./ui/pages/inventario.js";
 import { renderSettingsPage } from "./ui/pages/configuracion.js";
 import { renderPanelPage } from "./ui/pages/panel.js";
 import { createAmbientalFeatures } from "./features/ambiental.js";
+import { buildAiTemplatePrompt, copyTemplatePrompt } from "./features/plantilla-ia.js";
+import { createSonoffHomeAssistant } from "./features/sonoff-home-assistant.js";
 import { actionForm, createRegistroFeatures } from "./features/registro.js";
 import { createStore } from "./core/store.js";
 import {
@@ -71,6 +73,16 @@ const ambiental = createAmbientalFeatures({
   notify,
   closeModal: () => closeModal(),
   showToast,
+});
+const sonoff = createSonoffHomeAssistant({
+  now,
+  storage: localStorage,
+  pageProtocol: location.protocol,
+  recordReadings: ambiental.recordReadings,
+  showToast,
+  onStatusChange: () => {
+    if (route === "panel" && cultivation() && !modal.open) render();
+  },
 });
 const ciclo = createCycleFeatures({
   cultivation,
@@ -160,7 +172,11 @@ async function mountPage(name) {
   route = name;
   welcome.hidden = Boolean(c);
   app.hidden = !c;
-  if (!c) return;
+  if (!c) {
+    sonoff.stop();
+    return;
+  }
+  sonoff.start(c.id);
   routeStage.innerHTML = pageFrame(c, name);
   if (name === "panel") {
     renderPanelPage($("#panel-view"), c, currentPlan(c), {
@@ -172,6 +188,7 @@ async function mountPage(name) {
       activeAlerts,
       calendarWeek,
       formatDecimal,
+      sonoffStatus: sonoff.getStatus(),
     });
     bindPanel();
     $("#notification-button").onclick = requestNotifications;
@@ -202,7 +219,12 @@ async function mountPage(name) {
     };
   }
   if (name === "configuracion") {
-    renderSettingsPage($("#settings-view"), c, { card, escape, plantFor });
+    renderSettingsPage($("#settings-view"), c, {
+      card,
+      escape,
+      plantFor,
+      sonoffStatus: sonoff.getStatus(),
+    });
     bindSettings();
     enhanceSettings(c);
     $("#export-route").onclick = exportCurrent;
@@ -229,6 +251,10 @@ function bindSettings() {
   $("#settings-form").addEventListener("submit", ciclo.saveSettings);
   $("#settings-import").onclick = () => $("#import-file").click();
   $("#settings-export").onclick = exportCurrent;
+  $("#settings-import-sonoff").onclick = openSonoffImport;
+  $("#settings-sonoff").onclick = openSonoffConfiguration;
+  $("#settings-sonoff-refresh").onclick = refreshSonoff;
+  $("#settings-ai-template").onclick = openAiTemplatePrompt;
   $("#delete-local").onclick = confirmDelete;
 }
 function scopeName(c, scope = {}) {
@@ -269,28 +295,64 @@ function bindPanel() {
   if (advanceButton)
     advanceButton.onclick = () =>
       ciclo.requestWeek(cultivation().estado.semanaActiva + 1);
-  $("#sonoff-import").onclick = () => openSonoff();
+  $("#sonoff-configure").onclick = openSonoffConfiguration;
+  $("#sonoff-refresh").onclick = refreshSonoff;
 }
 function openAction(action, dwc) {
   modalAction = action;
   const definition = actionForm(action, cultivation(), dwc, escape);
   openModal(definition[0], `<div class="form-grid">${definition[1]}</div>`);
 }
-function openModal(title, body) {
+function openModal(title, body, { submitLabel = "Guardar", readOnly = false } = {}) {
   $("#modal-title").textContent = title;
   $("#modal-body").innerHTML = body;
-  $("#modal-submit").textContent = "Guardar";
+  $("#modal-submit").textContent = submitLabel;
+  $("#modal-submit").hidden = readOnly;
   modal.showModal();
 }
 function closeModal() {
   modalControls.close();
 }
-function openSonoff() {
+function openSonoffImport() {
   modalAction = "sonoff";
   openModal(
     "Importar lecturas SonoffLAN",
     `<div class="form-grid"><label class="full">Lectura JSON o arreglo<textarea name="json" rows="9" required placeholder='[{"fecha":"2026-08-08T12:00:00Z","temperatura":24.2,"humedad":72}]'></textarea></label></div>`,
   );
+}
+function openSonoffConfiguration() {
+  modalAction = "sonoff-config";
+  const config = sonoff.getConfiguration() || {};
+  openModal(
+    "Conectar Home Assistant + SonoffLAN",
+    `<p class="modal-note">Raíz consulta automáticamente a tu Home Assistant local; SonoffLAN integra allí el THR320D. No intenta llamar al puerto del Sonoff.</p><p class="modal-note">La URL debe ser accesible desde este navegador y permitir CORS para <code>${escape(location.origin)}</code>. En GitHub Pages, una URL HTTP local queda bloqueada por mixed content: usá HTTPS o ejecutá la app desde un origen HTTP local.</p><div class="form-grid"><label class="full">URL base de Home Assistant<input name="baseUrl" required inputmode="url" autocomplete="url" placeholder="https://homeassistant.local:8123" value="${escape(config.baseUrl || "")}"></label><label class="full">Long-Lived Access Token<input name="token" type="password" required autocomplete="off" placeholder="Token de Home Assistant" value="${escape(config.token || "")}"><small>Se guarda solo en el almacenamiento local de este navegador; no se incluye en backups.</small></label><label>Entidad de temperatura<input name="temperatureEntityId" required placeholder="sensor.carpas_temperatura" value="${escape(config.temperatureEntityId || "")}"></label><label>Entidad de humedad<input name="humidityEntityId" required placeholder="sensor.carpas_humedad" value="${escape(config.humidityEntityId || "")}"></label><label>Switch del humidificador<input name="humidifierEntityId" required placeholder="switch.humidificador" value="${escape(config.humidifierEntityId || "")}"></label><label>Actualizar cada (segundos)<input name="intervalSeconds" required type="text" inputmode="numeric" value="${escape(config.intervalSeconds || 60)}"></label></div>`,
+    { submitLabel: "Guardar y conectar" },
+  );
+}
+async function refreshSonoff() {
+  const result = await sonoff.refresh();
+  if (result.ok) showToast("Lectura ambiental actualizada.");
+}
+async function openAiTemplatePrompt() {
+  try {
+    modalAction = "ai-template";
+    const prompt = buildAiTemplatePrompt(await loadEyeballzTemplate());
+    openModal(
+      "Crear plantilla con IA",
+      `<p class="modal-note">Copiá este prompt, pegalo en una IA y reemplazá el bloque de descripción por tu instalación real. La respuesta debe ser un único archivo JSON, que después importás desde Configuración.</p><label class="full prompt-field">Prompt copiable<textarea id="ai-template-prompt" rows="14" readonly>${escape(prompt)}</textarea></label><div class="actions"><button type="button" id="copy-ai-template" class="primary">Copiar prompt</button></div>`,
+      { readOnly: true },
+    );
+    $("#copy-ai-template").onclick = async () => {
+      try {
+        await copyTemplatePrompt(prompt);
+        showToast("Prompt copiado. Pegalo en la IA que uses.");
+      } catch (error) {
+        showToast(error.message || "No se pudo copiar el prompt.");
+      }
+    };
+  } catch (error) {
+    showToast(error.message || "No se pudo preparar el prompt.");
+  }
 }
 function exportCurrent() {
   const c = cultivation();
@@ -356,6 +418,7 @@ $("#download-template").onclick = async () =>
     "eyeballz-4-dwc.example.json",
     JSON.stringify(await loadEyeballzTemplate(), null, 2),
   );
+$("#welcome-ai-template").onclick = openAiTemplatePrompt;
 $("#import-file").onchange = (e) => importFile(e.target.files[0]);
 $("#welcome-import").onchange = (e) => importFile(e.target.files[0]);
 const routeDriver = createHashRouter({
@@ -396,7 +459,23 @@ async function submitModal(data) {
   if (action === "week") return ciclo.advanceWeek();
   if (action === "sonoff")
     return ambiental.importSonoff(String(data.get("json") || ""));
+  if (action === "sonoff-config") {
+    const result = await sonoff.configure({
+      baseUrl: data.get("baseUrl"),
+      token: data.get("token"),
+      temperatureEntityId: data.get("temperatureEntityId"),
+      humidityEntityId: data.get("humidityEntityId"),
+      humidifierEntityId: data.get("humidifierEntityId"),
+      intervalSeconds: data.get("intervalSeconds"),
+    });
+    if (result.ok) {
+      closeModal();
+      showToast("SonoffLAN conectado mediante Home Assistant.");
+    } else showToast(result.message);
+    return;
+  }
   if (action === "delete") {
+    sonoff.forget();
     await clearState();
     store.reset();
     closeModal();

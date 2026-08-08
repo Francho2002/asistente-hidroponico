@@ -22,7 +22,8 @@ Abrí `http://localhost:3000`. No abras `index.html` directamente: la plantilla 
 - `styles.css`: sistema visual responsive claro/oscuro, con una paleta neutral y acento azul.
 - `js/app.js`: punto de arranque y coordinación de la aplicación.
 - `js/core/store.js`: estado local del cultivo, restauración y persistencia.
-- `js/features/`: registros, ciclo, ambiente e importación/exportación.
+- `js/core/sonoff-connection.js`: configuración local y segura de la conexión con Home Assistant.
+- `js/features/`: registros, ciclo, ambiente, importación/exportación, plantilla con IA y conexión Home Assistant + SonoffLAN.
 - `js/ui/router.js`: rutas hash, historial del navegador y transiciones entre páginas.
 - `js/ui/pages/`: páginas independientes de panel, historial, inventario y configuración.
 - `js/ui/modal.js` y `js/ui/shared.js`: diálogo seguro y componentes compartidos.
@@ -35,7 +36,9 @@ Abrí `http://localhost:3000`. No abras `index.html` directamente: la plantilla 
 - Ejemplo e importación de la plantilla Eyeballz con 4 DWC independientes y asignaciones Planta↔DWC.
 - Plan confirmado de semanas 0 a 14, tareas, alertas y notificaciones del navegador.
 - Mediciones agrupadas de pH, EC y temperatura por DWC; reposición, cambio de solución, observaciones y nutrición con descuento de inventario.
-- Historial, inventario, configuración de sistema/asignaciones/fuentes de datos, importación SonoffLAN y gráfico Canvas de humedad.
+- Historial, inventario, configuración de sistema/asignaciones/fuentes de datos y gráfico Canvas de humedad.
+- Prompt copiable para pedir a una IA una plantilla JSON importable, a partir del equipamiento y preferencias de cada persona.
+- Conexión automática a Home Assistant + SonoffLAN para temperatura, humedad y estado del humidificador; también admite JSON como respaldo manual.
 - Importación de plantillas o copias, exportación de backup y eliminación explícita de datos locales.
 - Navegación SPA sin recargar: cada página se desmonta y entra con transición, incluyendo Atrás y Adelante del navegador.
 
@@ -43,11 +46,21 @@ Abrí `http://localhost:3000`. No abras `index.html` directamente: la plantilla 
 
 La versión pública se publica con GitHub Pages: [francho2002.github.io/asistente-hidroponico](https://francho2002.github.io/asistente-hidroponico/).
 
-## Archivos JSON
+## Plantillas JSON e IA
 
-La plantilla demostrativa está en [examples/eyeballz-4-dwc.example.json](examples/eyeballz-4-dwc.example.json). Para SonoffLAN se acepta una lectura, un arreglo, o un objeto con `readings`; cada lectura usa `temperatura`/`temperature`, `humedad`/`humidity` y una fecha opcional.
+La plantilla demostrativa está en [examples/eyeballz-4-dwc.example.json](examples/eyeballz-4-dwc.example.json). En la bienvenida o en **Configuración**, elegí **Crear plantilla con IA**: el botón copia un prompt que pide una respuesta JSON estricta y usa Eyeballz solo como referencia de estructura. Revisá el JSON antes de importarlo.
 
-La aplicación no almacena credenciales de eWeLink. Una futura conexión LAN continua deberá pasar por un puente SonoffLAN local accesible para el navegador.
+Las lecturas JSON son un respaldo manual: se importan desde **Configuración** y pueden ser una lectura, un arreglo, o un objeto con `readings`; cada lectura usa `temperatura`/`temperature`, `humedad`/`humidity` y una fecha opcional.
+
+## Home Assistant + SonoffLAN
+
+La app no puede ni debe llamar directamente al puerto interno del THR320D: SonoffLAN es una integración de Home Assistant, no una API web abierta. Para lecturas automáticas:
+
+1. Integrá el THR320D en Home Assistant con SonoffLAN.
+2. En **Configuración → Conectar / Configurar SonoffLAN**, ingresá la URL base de Home Assistant, un *Long-Lived Access Token* y las entidades de temperatura, humedad y switch del humidificador.
+3. La app consulta las entidades al conectar y después en el intervalo elegido (60 segundos por defecto).
+
+El token queda únicamente en el almacenamiento local de ese navegador, nunca en una plantilla o backup, y se borra al eliminar los datos locales. Desde GitHub Pages la URL de Home Assistant debe usar HTTPS y permitir CORS para `https://francho2002.github.io`; una IP o URL `http://` local será bloqueada por el navegador. Consultá la [API REST de Home Assistant](https://developers.home-assistant.io/docs/api/rest/) y la configuración de [CORS](https://www.home-assistant.io/integrations/http/#cors_allowed_origins).
 
 ## Pruebas
 

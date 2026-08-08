@@ -1,7 +1,6 @@
 export function createAmbientalFeatures(api) {
   const ruleIsActive = (cultivation, ruleId) =>
-    cultivation.reglasAlertas?.find((rule) => rule.id === ruleId)?.activa ??
-    true;
+    cultivation.reglasAlertas?.find((rule) => rule.id === ruleId)?.activa ?? true;
   const addAlert = (
     cultivation,
     ruleId,
@@ -58,6 +57,32 @@ export function createAmbientalFeatures(api) {
       notices.push(`Humedad ${reading.humedad} %`);
     return notices;
   };
+  async function recordReadings(
+    readings,
+    source = { modo: "automatica", etiqueta: "SonoffLAN" },
+  ) {
+    const notices = [];
+    await api.updateCultivation((cultivation) => {
+      cultivation.lecturasAmbientales = [
+        ...(cultivation.lecturasAmbientales || []),
+        ...readings.map((reading) => ({ ...reading, fuente: source })),
+      ].sort((a, b) => a.fecha.localeCompare(b.fecha));
+      readings.forEach((reading) => {
+        cultivation.eventos.push({
+          id: api.id("evento"),
+          tipo: "lectura_ambiental",
+          fecha: reading.fecha,
+          alcance: { tipo: "cultivo" },
+          etapaActiva: cultivation.estado.etapaActiva,
+          fuente: source,
+          valores: reading,
+        });
+        notices.push(...evaluateAmbient(cultivation, reading));
+      });
+    });
+    notices.forEach((notice) => api.notify("Raíz: alerta ambiental", notice));
+    return notices;
+  }
   async function importSonoff(text) {
     try {
       const source = JSON.parse(text);
@@ -75,9 +100,7 @@ export function createAmbientalFeatures(api) {
         const humedad = Number(
           row.humedad ?? row.humidity ?? row.currentHumidity,
         );
-        const fecha = new Date(
-          row.fecha ?? row.timestamp ?? row.time ?? api.now(),
-        );
+        const fecha = new Date(row.fecha ?? row.timestamp ?? row.time ?? api.now());
         if (
           !Number.isFinite(temperatura) ||
           !Number.isFinite(humedad) ||
@@ -96,26 +119,7 @@ export function createAmbientalFeatures(api) {
             String(row.switch).toLowerCase() === "on",
         };
       });
-      const notices = [];
-      await api.updateCultivation((cultivation) => {
-        cultivation.lecturasAmbientales = [
-          ...(cultivation.lecturasAmbientales || []),
-          ...readings,
-        ].sort((a, b) => a.fecha.localeCompare(b.fecha));
-        readings.forEach((reading) => {
-          cultivation.eventos.push({
-            id: api.id("evento"),
-            tipo: "lectura_ambiental",
-            fecha: reading.fecha,
-            alcance: { tipo: "cultivo" },
-            etapaActiva: cultivation.estado.etapaActiva,
-            fuente: { modo: "automatica", etiqueta: "SonoffLAN" },
-            valores: reading,
-          });
-          notices.push(...evaluateAmbient(cultivation, reading));
-        });
-      });
-      notices.forEach((notice) => api.notify("Raíz: alerta ambiental", notice));
+      const notices = await recordReadings(readings);
       api.closeModal();
       api.showToast(
         `${readings.length} lectura(s) importada(s).${notices.length ? " Se generaron alertas." : ""}`,
@@ -124,5 +128,5 @@ export function createAmbientalFeatures(api) {
       api.showToast(error.message || "JSON inválido.");
     }
   }
-  return { addAlert, evaluateAmbient, importSonoff };
+  return { addAlert, evaluateAmbient, importSonoff, recordReadings };
 }

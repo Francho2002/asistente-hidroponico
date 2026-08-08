@@ -10,6 +10,15 @@ import {
   parseDecimal,
 } from "../js/domain.js";
 import { createAmbientalFeatures } from "../js/features/ambiental.js";
+import { buildAiTemplatePrompt } from "../js/features/plantilla-ia.js";
+import {
+  createSonoffHomeAssistant,
+  parseHomeAssistantStates,
+} from "../js/features/sonoff-home-assistant.js";
+import {
+  publicSonoffConnection,
+  validateSonoffConnection,
+} from "../js/core/sonoff-connection.js";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 test("entrega una aplicación estática con módulos ES", async () => {
@@ -28,6 +37,116 @@ test("entrega una aplicación estática con módulos ES", async () => {
   assert.match(css, /\[hidden\]\s*\{\s*display:\s*none\s*!important/);
   assert.match(panel, /canvas/);
   assert.match(storage, /indexedDB/);
+});
+
+test("el prompt de IA pide una plantilla JSON estricta y usa el ejemplo como esquema", async () => {
+  const template = JSON.parse(await read("examples/eyeballz-4-dwc.example.json"));
+  const prompt = buildAiTemplatePrompt(template);
+  assert.match(prompt, /exclusivamente el JSON final/i);
+  assert.match(prompt, /"tipo": "plantilla"/);
+  assert.match(prompt, /no inventes datos no confirmados/i);
+  assert.match(prompt, /Home Assistant \+ SonoffLAN/);
+  assert.match(prompt, /Eyeballz/);
+});
+
+test("la configuración de Home Assistant mantiene el token fuera de la superficie pública", () => {
+  const check = validateSonoffConnection({
+    baseUrl: "https://ha.local:9443/",
+    token: "secreto-local",
+    temperatureEntityId: "sensor.temperatura",
+    humidityEntityId: "sensor.humedad",
+    humidifierEntityId: "switch.humidificador",
+    intervalSeconds: 5,
+  }, "http:");
+  assert.equal(check.valid, true);
+  assert.equal(check.value.intervalSeconds, 15);
+  assert.deepEqual(publicSonoffConnection(check.value), {
+    baseUrl: "https://ha.local:9443",
+    temperatureEntityId: "sensor.temperatura",
+    humidityEntityId: "sensor.humedad",
+    humidifierEntityId: "switch.humidificador",
+    intervalSeconds: 15,
+  });
+  assert.match(
+    validateSonoffConnection({ ...check.value, baseUrl: "http://ha.local:8123" }, "https:").message,
+    /mixed content|HTTPS/i,
+  );
+});
+
+test("el conector consulta estados de Home Assistant y registra una lectura automática", async () => {
+  const calls = [];
+  const saved = new Map();
+  const readings = [];
+  const connector = createSonoffHomeAssistant({
+    now: () => "2026-08-08T12:00:00.000Z",
+    pageProtocol: "http:",
+    storage: {
+      getItem: (key) => saved.get(key) || null,
+      setItem: (key, value) => saved.set(key, value),
+      removeItem: (key) => saved.delete(key),
+    },
+    recordReadings: async (next, source) => readings.push({ next, source }),
+    fetchImpl: async (url) => {
+      calls.push(url);
+      const state = url.includes("temperatura") ? "24.4" : url.includes("humedad") ? "61" : "on";
+      return { ok: true, json: async () => ({ state }) };
+    },
+  });
+  connector.start("cultivo-prueba");
+  const result = await connector.configure({
+    baseUrl: "https://ha.local:8123",
+    token: "secreto",
+    temperatureEntityId: "sensor.temperatura",
+    humidityEntityId: "sensor.humedad",
+    humidifierEntityId: "switch.humidificador",
+    intervalSeconds: 60,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(calls.length, 3);
+  assert.deepEqual(readings.at(-1), {
+    next: [{
+      fecha: "2026-08-08T12:00:00.000Z",
+      temperatura: 24.4,
+      humedad: 61,
+      humidificadorEncendido: true,
+    }],
+    source: { modo: "automatica", etiqueta: "Home Assistant + SonoffLAN" },
+  });
+  connector.forget();
+  assert.equal(saved.size, 0);
+  assert.equal(connector.getConfiguration(), null);
+});
+
+test("los fondos PWM locales cubren todas las etapas y el panel usa el conector", async () => {
+  const [css, panel, app, settings, html] = await Promise.all([
+    read("styles.css"),
+    read("js/ui/pages/panel.js"),
+    read("js/app.js"),
+    read("js/ui/pages/configuracion.js"),
+    read("index.html"),
+  ]);
+  for (const asset of [
+    "montanas-serenas", "oceano-profundo", "dunas-doradas", "sombras-botanicas", "bosque-en-niebla", "cielo-nocturno",
+  ]) {
+    await access(new URL(`../public/assets/backgrounds/${asset}.webp`, import.meta.url), constants.F_OK);
+    assert.match(css, new RegExp(`backgrounds/${asset}\\.webp`));
+  }
+  for (const stage of ["enraizado", "vegetativo-temprano", "vegetativo-tardio", "preflora", "flora-estiramiento", "flora-engorde", "maduracion", "lavado", "cosecha"])
+    assert.match(css, new RegExp(`data-stage="${stage}"`));
+  assert.match(css, /--stage-background/);
+  assert.match(panel, /Home Assistant \+ SonoffLAN/);
+  assert.doesNotMatch(panel, /Importar lecturas JSON/);
+  assert.match(settings, /Importar lecturas JSON \(respaldo\)/);
+  assert.match(html, /welcome-ai-template/);
+  assert.match(app, /createSonoffHomeAssistant/);
+});
+
+test("el parser de estados de Home Assistant exige números y switch on", () => {
+  assert.deepEqual(
+    parseHomeAssistantStates([{ state: "25" }, { state: "58.5" }, { state: "on" }], "2026-08-08T12:00:00.000Z"),
+    { fecha: "2026-08-08T12:00:00.000Z", temperatura: 25, humedad: 58.5, humidificadorEncendido: true },
+  );
+  assert.throws(() => parseHomeAssistantStates([{ state: "x" }, { state: "58" }, { state: "off" }]), /temperatura no numérica/);
 });
 test("mantiene la plantilla Eyeballz y el ciclo semanal completo", async () => {
   const template = JSON.parse(
