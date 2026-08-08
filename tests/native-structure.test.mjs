@@ -445,8 +445,12 @@ test("mantiene el flujo híbrido y superficies PWM sin exportar en el panel", as
   assert.match(css, /--bg: #111418/);
   assert.match(css, /--surface: #1a1f26/);
   assert.match(css, /--accent: #1d4ed8/);
+  assert.match(css, /\.topbar \{[\s\S]*position: sticky[\s\S]*border-bottom: 1px solid var\(--line\)/);
+  assert.match(css, /body::before \{ content: none; \}/);
+  assert.doesNotMatch(css, /body \{ margin: 0; min-width: 320px/);
   assert.match(css, /data-stage="flora-engorde"/);
   assert.match(css, /@media \(max-width: 390px\)/);
+  assert.match(css, /nav button \{ min-height: 2\.1rem; padding: \.35rem \.2rem; font-size: \.73rem; \}/);
   assert.match(css, /nav \{ order: 3; flex: 0 0 100%/);
   assert.match(css, /\.route-page::before \{ inset: 2\.5rem 0 -1rem; \}/);
   assert.match(css, /@media \(max-width: 340px\)/);

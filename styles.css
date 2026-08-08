@@ -34,7 +34,7 @@ html[data-theme="light"] {
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { margin: 0; min-width: 320px; background: var(--bg); color: var(--text); }
+body { margin: 0; background: var(--bg); color: var(--text); }
 button, .file-button, input, select, textarea { font: inherit; }
 button, .file-button {
   min-height: 2.75rem;
@@ -62,14 +62,19 @@ button:disabled { cursor: not-allowed; opacity: .46; }
 
 .topbar {
   min-height: 4.25rem;
-  width: min(1120px, calc(100% - 2rem));
+  width: 100%;
   margin: auto;
+  padding-inline: max(1rem, calc((100% - 1120px) / 2));
   display: flex;
   align-items: center;
   gap: 1.25rem;
   background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  border-bottom: 1px solid var(--line);
 }
-body::before { content: ""; position: fixed; inset: 0 0 auto; z-index: 1; height: 4.25rem; border-bottom: 1px solid var(--line); background: var(--bg); pointer-events: none; }
+body::before { content: none; }
 .brand { z-index: 2; color: inherit; text-decoration: none; display: grid; grid-template-columns: auto auto; gap: 0 .45rem; line-height: 1.05; white-space: nowrap; }
 .brand span { grid-row: span 2; color: var(--accent); font-size: 1.65rem; }
 .brand small { font-size: .72rem; color: var(--muted); }
@@ -192,9 +197,9 @@ dialog footer { border-top: 1px solid var(--line); padding-top: .9rem; margin-to
 #toast.show { opacity: 1; transform: none; }
 
 @media (max-width: 760px) {
-  .topbar, main { width: min(100% - 1rem, 1120px); }
-  .topbar { min-height: auto; padding: .5rem 0; gap: .5rem; flex-wrap: wrap; }
-  body::before { height: 7.1rem; }
+  main { width: min(100% - 1rem, 1120px); }
+  .topbar { min-height: auto; padding: .35rem .5rem; gap: .25rem .5rem; flex-wrap: wrap; }
+  main { padding-top: 1.25rem; }
   nav { order: 3; flex: 0 0 100%; width: 100%; overflow: hidden; padding-bottom: .1rem; }
   nav button { flex: 1 1 0; min-width: 0; padding: .45rem .35rem; font-size: .78rem; white-space: nowrap; }
   .page-heading, .welcome { display: block; }
@@ -218,6 +223,8 @@ dialog footer { border-top: 1px solid var(--line); padding-top: .9rem; margin-to
 
 @media (max-width: 390px) {
   .brand small { display: none; }
+  .topbar { padding-block: .25rem; }
+  nav button { min-height: 2.1rem; padding: .35rem .2rem; font-size: .73rem; }
   .numbers { gap: .35rem; }
   .numbers div { padding: .45rem; }
   .numbers b { font-size: .94rem; }
