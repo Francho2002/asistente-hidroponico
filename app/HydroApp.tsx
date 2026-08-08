@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HydroDashboard } from "./components/HydroDashboard";
 import { Modal } from "./components/Modal";
+import { ThemeToggle } from "./components/ThemeToggle";
 import {
   EYEBALLZ_TEMPLATE,
   createCultivationFromTemplate,
@@ -102,6 +103,7 @@ function Welcome({ onStart, onImport, onDownload }: { onStart: () => void; onImp
           <span><strong>Raíz</strong><small>Asistente hidropónico</small></span>
         </div>
         <div className="welcome-actions">
+          <ThemeToggle />
           <button className="button button-secondary" type="button" onClick={onImport}><Upload size={17} /> Importar archivo</button>
           <button className="button button-primary" type="button" onClick={onStart}>Abrir ejemplo</button>
         </div>

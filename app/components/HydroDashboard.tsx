@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { ThemeToggle } from "./ThemeToggle";
 import {
   Area,
   AreaChart,
@@ -244,6 +245,7 @@ export function HydroDashboard({
             <div><p className="eyebrow">{cultivo.nombre}</p><h1>{title}</h1></div>
           </div>
           <div className="topbar-actions">
+            <ThemeToggle compact />
             <button className="icon-button notification-button" type="button" onClick={onRequestNotifications} aria-label="Activar notificaciones">
               <Bell size={20} />
               {activeAlerts.length ? <span className="notification-dot" /> : null}
