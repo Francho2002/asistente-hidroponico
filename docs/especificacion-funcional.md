@@ -177,7 +177,11 @@ La etapa describe el momento general del cultivo. La semana del plan determina l
 
 Una celda vacía significa **no aplicar**, no “dato desconocido”.
 
-El cambio de etapa es sugerido por calendario pero requiere confirmación. Al confirmarlo se activan nuevos objetivos, receta, tareas y avisos sin modificar el historial anterior.
+El calendario calcula automáticamente la semana transcurrida desde la fecha de inicio. La etapa confirmada, en cambio, no cambia sola: cuando llega una nueva semana, el asistente la propone y el usuario confirma el avance de a una semana. No se puede adelantar una etapa por encima de la semana calendario.
+
+Si se corrige la fecha de inicio, se recalcula el calendario sin reescribir eventos ni retroceder etapas ya confirmadas. Si ambos quedan desfasados, el asistente lo informa para que el usuario lo revise.
+
+Al confirmar una etapa se activan nuevos objetivos, receta, tareas y avisos sin modificar el historial anterior.
 
 ## 6. Asignaciones Planta ↔ DWC
 
@@ -423,4 +427,3 @@ No existe una lista rígida de aprobación previa. Al importar, el cultivo puede
 - Oklahoma State University, gestión de pH y EC: https://extension.okstate.edu/fact-sheets/electrical-conductivity-and-ph-guide-for-hydroponics
 - Virginia Tech, DWC y frecuencia de control: https://ext.vt.edu/content/dam/pubs_ext_vt_edu/spes/spes-464/SPES-464.pdf
 - SonoffLAN, soporte local de THR316D/THR320D: https://github.com/AlexxIT/SonoffLAN
-

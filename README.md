@@ -2,9 +2,13 @@
 
 Aplicación estática para seguir un cultivo DWC localmente. No usa framework, dependencias ni compilación: HTML semántico, CSS nativo y módulos ES del navegador.
 
-## Ejecutar localmente
+## Usar la aplicación
 
-Desde esta carpeta, iniciá cualquier servidor estático. Por ejemplo:
+En GitHub Pages no hay nada que instalar ni ejecutar: abrí [francho2002.github.io/asistente-hidroponico](https://francho2002.github.io/asistente-hidroponico/) y los datos seguirán guardándose en ese navegador.
+
+## Desarrollo local
+
+Solo hace falta un servidor estático cuando se trabaja con los archivos fuente desde una carpeta local. Por ejemplo:
 
 ```bash
 python -m http.server 3000

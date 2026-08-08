@@ -20,7 +20,7 @@ export function createAmbientalFeatures(api) {
     if (!duplicate)
       cultivation.alertas.push({
         id: api.id("alerta"),
-        reglaId,
+        reglaId: ruleId,
         severidad: severity,
         titulo: title,
         detalle: detail,

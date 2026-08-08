@@ -3,7 +3,13 @@ import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import test from "node:test";
 import { validateTemplate } from "../js/template.js";
-import { normalizeCultivation } from "../js/domain.js";
+import {
+  calendarWeek,
+  formatDecimal,
+  normalizeCultivation,
+  parseDecimal,
+} from "../js/domain.js";
+import { createAmbientalFeatures } from "../js/features/ambiental.js";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 test("entrega una aplicación estática con módulos ES", async () => {
@@ -70,13 +76,71 @@ test("normaliza lecturas ambientales heredadas", () => {
     },
   ]);
 });
+test("el calendario avanza solo, pero la etapa confirmada permanece separada", () => {
+  const start = "2026-08-01T12:00:00.000Z";
+  assert.equal(calendarWeek(start, "2026-08-01T12:00:00.000Z"), 0);
+  assert.equal(calendarWeek(start, "2026-08-08T11:59:59.000Z"), 0);
+  assert.equal(calendarWeek(start, "2026-08-08T12:00:00.000Z"), 1);
+  assert.equal(calendarWeek(start, "2027-01-01T12:00:00.000Z"), 14);
+  assert.equal(calendarWeek(start, "2026-07-20T12:00:00.000Z"), 0);
+});
+test("acepta coma decimal y presenta valores en español", () => {
+  assert.equal(parseDecimal("5,8"), 5.8);
+  assert.equal(parseDecimal("1.5"), 1.5);
+  assert.ok(Number.isNaN(parseDecimal("cinco")));
+  assert.equal(formatDecimal(1.5), "1,5");
+});
+test("addAlert crea una alerta con la regla que la originó", () => {
+  const features = createAmbientalFeatures({
+    id: () => "alerta-prueba",
+    now: () => "2026-08-08T12:00:00.000Z",
+  });
+  const cultivation = {
+    alertas: [],
+    reglasAlertas: [{ id: "ph-general", activa: true }],
+  };
+  assert.equal(
+    features.addAlert(
+      cultivation,
+      "ph-general",
+      "alerta",
+      "pH fuera de rango",
+      "Se registró pH 7,0.",
+      { tipo: "dwc", id: "dwc-1" },
+    ),
+    true,
+  );
+  assert.deepEqual(cultivation.alertas, [
+    {
+      id: "alerta-prueba",
+      reglaId: "ph-general",
+      severidad: "alerta",
+      titulo: "pH fuera de rango",
+      detalle: "Se registró pH 7,0.",
+      alcance: { tipo: "dwc", id: "dwc-1" },
+      creadaEn: "2026-08-08T12:00:00.000Z",
+      estado: "activa",
+    },
+  ]);
+  assert.equal(
+    features.addAlert(
+      cultivation,
+      "ph-general",
+      "alerta",
+      "pH fuera de rango",
+      "Duplicada.",
+      { tipo: "dwc", id: "dwc-1" },
+    ),
+    false,
+  );
+});
 test("no deja código legado", async () => {
   const app = await read("js/app.js");
   assert.doesNotMatch(
     app,
     /submitModalLegacy|importSonoffLegacy|saveSettingsLegacy/,
   );
-  assert.doesNotMatch(app, /[ÃÂ]/);
+  assert.doesNotMatch(app, new RegExp("[\\u00c3\\u00c2]"));
 });
 test("navega como SPA y el diálogo permite cancelar sin validar", async () => {
   const [html, app, router, modal] = await Promise.all([
@@ -95,6 +159,35 @@ test("navega como SPA y el diálogo permite cancelar sin validar", async () => {
   assert.match(router, /navigationId/);
   assert.match(modal, /button\.type = "button"/);
   assert.match(modal, /dialog\.addEventListener\("cancel"/);
+});
+test("mantiene el flujo híbrido y superficies PWM sin exportar en el panel", async () => {
+  const [html, css, app, panel, cycle, registro] = await Promise.all([
+    read("index.html"),
+    read("styles.css"),
+    read("js/app.js"),
+    read("js/ui/pages/panel.js"),
+    read("js/features/ciclo.js"),
+    read("js/features/registro.js"),
+  ]);
+  assert.doesNotMatch(html, /id="export-button"/);
+  assert.match(app, /setInterval/);
+  assert.match(app, /Semana confirmada/);
+  assert.match(app, /name="fechaInicio"/);
+  assert.match(cycle, /week > calendarWeek/);
+  assert.match(panel, /Semana calendario/);
+  assert.match(app, /data-stage/);
+  assert.match(registro, /inputmode="decimal"/);
+  assert.match(registro, /parseDecimal/);
+  assert.match(css, /--bg: #111418/);
+  assert.match(css, /--surface: #1a1f26/);
+  assert.match(css, /--accent: #1d4ed8/);
+  assert.match(css, /data-stage="flora-engorde"/);
+  assert.match(css, /@media \(max-width: 390px\)/);
+  assert.match(css, /nav \{ order: 3; flex: 0 0 100%/);
+  assert.match(css, /\.route-page::before \{ inset: 2\.5rem 0 -1rem; \}/);
+  assert.match(css, /@media \(max-width: 340px\)/);
+  assert.match(css, /nav \{ display: grid; grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css, /\.numbers \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); \}/);
 });
 test("separa rutas, páginas y funcionalidades en módulos nativos", async () => {
   const app = await read("js/app.js");

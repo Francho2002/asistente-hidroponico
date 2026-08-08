@@ -1,3 +1,5 @@
+import { calendarWeek, dateFromInput, parseDecimal } from "../domain.js";
+
 export function createCycleFeatures(api) {
   async function toggleTask(taskId) {
     await api.updateCultivation((cultivation) => {
@@ -10,10 +12,17 @@ export function createCycleFeatures(api) {
 
   function requestWeek(week) {
     const cultivation = api.cultivation();
+    const calendar = calendarWeek(cultivation.fechaInicio);
     if (week < 0 || week > 14 || week === cultivation.estado.semanaActiva)
       return;
     if (week !== cultivation.estado.semanaActiva + 1) {
       api.showToast("El avance se confirma de a una semana.");
+      return;
+    }
+    if (week > calendar) {
+      api.showToast(
+        "Todavía no corresponde: esperá a que llegue esa semana calendario.",
+      );
       return;
     }
     api.setModalAction("week");
@@ -27,6 +36,12 @@ export function createCycleFeatures(api) {
   async function advanceWeek() {
     const cultivation = api.cultivation();
     const week = Math.min(14, cultivation.estado.semanaActiva + 1);
+    if (week > calendarWeek(cultivation.fechaInicio)) {
+      api.closeModal();
+      return api.showToast(
+        "Todavía no corresponde confirmar esa semana del calendario.",
+      );
+    }
     const plan = cultivation.plan.semanas.find((item) => item.semana === week);
     const time = api.now();
     await api.updateCultivation((item) => {
@@ -56,13 +71,17 @@ export function createCycleFeatures(api) {
         String(form.get("variedad") || "").trim() || cultivation.variedad;
       cultivation.banco =
         String(form.get("banco") || "").trim() || cultivation.banco;
+      cultivation.fechaInicio = dateFromInput(
+        form.get("fechaInicio"),
+        cultivation.fechaInicio,
+      );
       cultivation.espacio ||= {};
       ["largo", "ancho", "alto"].forEach((key) => {
-        const value = Number(form.get(`espacio-${key}`));
+        const value = parseDecimal(form.get(`espacio-${key}`));
         if (Number.isFinite(value) && value > 0)
           cultivation.espacio[`${key}M`] = value;
       });
-      const temperature = Number(form.get("temperaturaObjetivoC"));
+      const temperature = parseDecimal(form.get("temperaturaObjetivoC"));
       if (Number.isFinite(temperature)) {
         cultivation.plan.semanas.forEach((week) => {
           week.temperaturaObjetivoC = temperature;
@@ -70,7 +89,7 @@ export function createCycleFeatures(api) {
       }
       cultivation.dwcs.forEach((dwc) => {
         const name = String(form.get(`dwc-name-${dwc.id}`) || "").trim();
-        const volume = Number(form.get(`dwc-volume-${dwc.id}`));
+        const volume = parseDecimal(form.get(`dwc-volume-${dwc.id}`));
         if (name) dwc.nombre = name;
         if (Number.isFinite(volume) && volume > 0)
           dwc.volumenTrabajoLitros = volume;

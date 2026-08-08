@@ -17,12 +17,16 @@ import {
 import { createCycleFeatures } from "./features/ciclo.js";
 import {
   backup,
+  calendarWeek,
   createCultivation,
   currentPlan,
+  dateInputValue,
+  formatDecimal,
   hoursFrom,
   id,
   normalizeCultivation,
   now,
+  stageThemeKey,
 } from "./domain.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -113,9 +117,10 @@ function notify(title, body) {
 }
 const routes = new Set(["panel", "historial", "inventario", "configuracion"]);
 function pageFrame(c, name) {
+  const currentCalendarWeek = calendarWeek(c.fechaInicio);
   const heading = {
     panel: {
-      eyebrow: `Semana ${c.estado.semanaActiva} de 14 · ${c.estado.etapaActiva}`,
+      eyebrow: `Semana confirmada ${c.estado.semanaActiva} de 14 · calendario ${currentCalendarWeek} · ${c.estado.etapaActiva}`,
       title: c.nombre,
       subtitle: `${c.variedad} · ${c.dwcs.length} DWC independientes · inicio ${date(c.fechaInicio)}`,
       actions:
@@ -148,7 +153,7 @@ function pageFrame(c, name) {
       content: '<section id="settings-view" class="view"></section>',
     },
   }[name];
-  return `<article class="route-page" data-route="${name}"><header class="page-heading"><div><p class="eyebrow">${heading.eyebrow}</p><h1>${escape(heading.title)}</h1><p>${escape(heading.subtitle)}</p></div><div class="actions">${heading.actions}</div></header>${heading.content}</article>`;
+  return `<article class="route-page" data-route="${name}" data-stage="${stageThemeKey(currentPlan(c).etapa)}"><header class="page-heading"><div><p class="eyebrow">${heading.eyebrow}</p><h1>${escape(heading.title)}</h1><p>${escape(heading.subtitle)}</p></div><div class="actions page-actions">${heading.actions}</div></header>${heading.content}</article>`;
 }
 async function mountPage(name) {
   const c = cultivation();
@@ -165,6 +170,8 @@ async function mountPage(name) {
       latest,
       plantFor,
       activeAlerts,
+      calendarWeek,
+      formatDecimal,
     });
     bindPanel();
     $("#notification-button").onclick = requestNotifications;
@@ -183,7 +190,11 @@ async function mountPage(name) {
       openAction("measure", cultivation()?.dwcs[0].id);
   }
   if (name === "inventario") {
-    renderInventoryPage($("#inventory-view"), c, { card, escape });
+    renderInventoryPage($("#inventory-view"), c, {
+      card,
+      escape,
+      formatDecimal,
+    });
     $("#add-inventory").onclick = openInventory;
     $("#inventory-view [data-action]").onclick = (event) => {
       const button = event.target.closest("[data-action]");
@@ -211,7 +222,7 @@ function enhanceSettings(c) {
     .join("");
   target.insertAdjacentHTML(
     "beforeend",
-    `<hr><h3>Detalle del sistema</h3><div class="settings-grid"><label>Banco<input form="settings-form" name="banco" value="${escape(c.banco || "")}"></label><label>Temperatura objetivo<input form="settings-form" name="temperaturaObjetivoC" type="number" step="0.1" value="${currentPlan(c).temperaturaObjetivoC ?? ""}"></label><label>Largo (m)<input form="settings-form" name="espacio-largo" type="number" step="0.1" value="${c.espacio?.largoM ?? ""}"></label><label>Ancho (m)<input form="settings-form" name="espacio-ancho" type="number" step="0.1" value="${c.espacio?.anchoM ?? ""}"></label><label>Alto (m)<input form="settings-form" name="espacio-alto" type="number" step="0.1" value="${c.espacio?.altoM ?? ""}"></label>${c.dwcs.map((d) => `<label>${escape(d.nombre)}: nombre<input form="settings-form" name="dwc-name-${d.id}" value="${escape(d.nombre)}"></label><label>${escape(d.nombre)}: volumen de trabajo (L)<input form="settings-form" name="dwc-volume-${d.id}" type="number" step="0.1" min="0.1" required value="${d.volumenTrabajoLitros}"></label>`).join("")}</div><h3 style="margin-top:16px">Reglas de alerta</h3><div class="settings-grid">${rules || '<p class="muted">No hay reglas configuradas.</p>'}</div>`,
+    `<hr><h3>Detalle del sistema</h3><div class="settings-grid"><label>Fecha de inicio<input form="settings-form" name="fechaInicio" type="date" value="${dateInputValue(c.fechaInicio)}"></label><label>Banco<input form="settings-form" name="banco" value="${escape(c.banco || "")}"></label><label>Temperatura objetivo<input form="settings-form" name="temperaturaObjetivoC" type="text" inputmode="decimal" value="${formatDecimal(currentPlan(c).temperaturaObjetivoC)}"></label><label>Largo (m)<input form="settings-form" name="espacio-largo" type="text" inputmode="decimal" value="${formatDecimal(c.espacio?.largoM)}"></label><label>Ancho (m)<input form="settings-form" name="espacio-ancho" type="text" inputmode="decimal" value="${formatDecimal(c.espacio?.anchoM)}"></label><label>Alto (m)<input form="settings-form" name="espacio-alto" type="text" inputmode="decimal" value="${formatDecimal(c.espacio?.altoM)}"></label>${c.dwcs.map((d) => `<label>${escape(d.nombre)}: nombre<input form="settings-form" name="dwc-name-${d.id}" value="${escape(d.nombre)}"></label><label>${escape(d.nombre)}: volumen de trabajo (L)<input form="settings-form" name="dwc-volume-${d.id}" type="text" inputmode="decimal" required value="${formatDecimal(d.volumenTrabajoLitros)}"></label>`).join("")}</div><h3 style="margin-top:16px">Reglas de alerta</h3><div class="settings-grid">${rules || '<p class="muted">No hay reglas configuradas.</p>'}</div>`,
   );
 }
 function bindSettings() {
@@ -231,7 +242,7 @@ function labelEvent(e) {
   return (
     {
       medicion_solucion: "Medición de solución",
-      reposicion_agua: `Reposición de agua${e.litros ? ` (${e.litros} L)` : ""}`,
+      reposicion_agua: `Reposición de agua${e.litros ? ` (${formatDecimal(e.litros)} L)` : ""}`,
       cambio_solucion: "Cambio de solución",
       observacion: "Observación",
       nutricion: "Nutrición",
@@ -254,8 +265,10 @@ function bindPanel() {
     .forEach(
       (b) => (b.onclick = () => ciclo.requestWeek(Number(b.dataset.week))),
     );
-  $("#advance-week").onclick = () =>
-    ciclo.requestWeek(cultivation().estado.semanaActiva + 1);
+  const advanceButton = $("#advance-week");
+  if (advanceButton)
+    advanceButton.onclick = () =>
+      ciclo.requestWeek(cultivation().estado.semanaActiva + 1);
   $("#sonoff-import").onclick = () => openSonoff();
 }
 function openAction(action, dwc) {
@@ -321,7 +334,6 @@ $("#theme-toggle").onclick = () => {
   localStorage.setItem("raiz-theme", themeName);
   render();
 };
-$("#export-button").onclick = exportCurrent;
 async function requestNotifications() {
   if (!("Notification" in window))
     return showToast("Este navegador no admite notificaciones.");
@@ -364,11 +376,17 @@ try {
   showToast("IndexedDB no está disponible; revisá los permisos del navegador.");
 }
 
+// The clock is derived from fechaInicio. Refreshing once a minute lets an open
+// dashboard update its calendar-week status without a reload or background job.
+setInterval(() => {
+  if (cultivation() && route === "panel" && !modal.open) render();
+}, 60000);
+
 function openInventory() {
   modalAction = "inventory";
   openModal(
     "Añadir insumo",
-    '<div class="form-grid"><label class="full">Nombre<input name="name" required></label><label>Cantidad<input name="quantity" type="number" min="0" step="0.01" required></label><label>Unidad<input name="unit" required placeholder="L, mL, unidadâ€¦"></label><label>Umbral bajo<input name="threshold" type="number" min="0" step="0.01"></label><label class="full">Notas<textarea name="notes" rows="3"></textarea></label></div>',
+    '<div class="form-grid"><label class="full">Nombre<input name="name" required></label><label>Cantidad<input name="quantity" type="text" inputmode="decimal" required placeholder="1,5"></label><label>Unidad<input name="unit" required placeholder="L, mL, unidad…"></label><label>Umbral bajo<input name="threshold" type="text" inputmode="decimal" placeholder="0,25"></label><label class="full">Notas<textarea name="notes" rows="3"></textarea></label></div>',
   );
 }
 async function submitModal(data) {

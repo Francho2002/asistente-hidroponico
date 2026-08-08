@@ -1,3 +1,8 @@
+import { formatDecimal, parseDecimal } from "../domain.js";
+
+const decimalInput = (name, attributes = "") =>
+  `<input name="${name}" type="text" inputmode="decimal" autocomplete="off" ${attributes}>`;
+
 export function actionForm(action, cultivation, selectedDwc, escape) {
   const options = cultivation.dwcs
     .map(
@@ -9,11 +14,11 @@ export function actionForm(action, cultivation, selectedDwc, escape) {
   const forms = {
     measure: [
       "Registrar medición",
-      `${dwc}<label>pH<input name="ph" type="number" step="0.01" required></label><label>EC (mS/cm)<input name="ec" type="number" step="0.01" required></label><label>Temperatura (°C)<input name="temperature" type="number" step="0.1" required></label>`,
+      `${dwc}<label>pH${decimalInput("ph", 'required placeholder="5,8"')}</label><label>EC (mS/cm)${decimalInput("ec", 'required placeholder="1,8"')}</label><label>Temperatura (°C)${decimalInput("temperature", 'required placeholder="21,4"')}</label>`,
     ],
     water: [
       "Registrar reposición",
-      `${dwc}<label>Litros añadidos<input name="liters" type="number" step="0.1" min="0.1" required></label>`,
+      `${dwc}<label>Litros añadidos${decimalInput("liters", 'required placeholder="1,5"')}</label>`,
     ],
     solution: [
       "Registrar cambio de solución",
@@ -25,7 +30,7 @@ export function actionForm(action, cultivation, selectedDwc, escape) {
     ],
     nutrition: [
       "Registrar nutrición",
-      `${dwc}<label>Producto<select name="product">${cultivation.inventario.map((item) => `<option value="${item.id}">${escape(item.nombre)} (${item.cantidad} ${item.unidad})</option>`).join("")}</select></label><label>Cantidad (mL)<input name="amount" type="number" step="1" min="1" required></label>`,
+      `${dwc}<label>Producto<select name="product">${cultivation.inventario.map((item) => `<option value="${item.id}">${escape(item.nombre)} (${item.cantidad} ${item.unidad})</option>`).join("")}</select></label><label>Cantidad (mL)${decimalInput("amount", 'required placeholder="1,5"')}</label>`,
     ],
   };
   return forms[action];
@@ -37,7 +42,7 @@ export function createRegistroFeatures(api) {
     const time = api.now();
     if (action === "inventory") {
       const name = String(data.get("name") || "").trim();
-      const quantity = Number(data.get("quantity"));
+      const quantity = parseDecimal(data.get("quantity"));
       const unit = String(data.get("unit") || "").trim();
       const threshold = String(data.get("threshold") || "").trim();
       const notes = String(data.get("notes") || "").trim();
@@ -49,7 +54,8 @@ export function createRegistroFeatures(api) {
           nombre: name,
           cantidad: quantity,
           unidad: unit,
-          umbralBajo: threshold === "" ? undefined : Number(threshold),
+          umbralBajo:
+            threshold === "" ? undefined : parseDecimal(threshold),
           notas: notes || undefined,
         }),
       );
@@ -65,9 +71,9 @@ export function createRegistroFeatures(api) {
       fuente: { modo: "manual", etiqueta: "Registro manual" },
     };
     if (action === "measure") {
-      const ph = Number(data.get("ph"));
-      const ec = Number(data.get("ec"));
-      const temperature = Number(data.get("temperature"));
+      const ph = parseDecimal(data.get("ph"));
+      const ec = parseDecimal(data.get("ec"));
+      const temperature = parseDecimal(data.get("temperature"));
       if (![ph, ec, temperature].every(Number.isFinite))
         return api.showToast("Completá pH, EC y temperatura.");
       const notices = [];
@@ -113,7 +119,7 @@ export function createRegistroFeatures(api) {
             "ph-general",
             "alerta",
             "pH fuera del rango general",
-            `Se registró pH ${ph}.`,
+            `Se registró pH ${formatDecimal(ph)}.`,
             measurement.alcance,
           )
         )
@@ -126,7 +132,7 @@ export function createRegistroFeatures(api) {
             "ec-objetivo",
             "aviso",
             "EC alejada del objetivo",
-            `Se registró EC ${ec}.`,
+            `Se registró EC ${formatDecimal(ec)}.`,
             measurement.alcance,
           )
         )
@@ -139,7 +145,7 @@ export function createRegistroFeatures(api) {
       return api.showToast("Medición guardada; la próxima vence en 48 h.");
     }
     if (action === "water") {
-      const liters = Number(data.get("liters"));
+      const liters = parseDecimal(data.get("liters"));
       if (!Number.isFinite(liters) || liters <= 0)
         return api.showToast("Indicá una cantidad de agua válida.");
       await api.updateCultivation((item) => {
@@ -215,7 +221,7 @@ export function createRegistroFeatures(api) {
       const product = cultivation.inventario.find(
         (item) => item.id === data.get("product"),
       );
-      const amount = Number(data.get("amount"));
+      const amount = parseDecimal(data.get("amount"));
       if (!product || !Number.isFinite(amount) || amount <= 0)
         return api.showToast("Indicá un producto y cantidad válidos.");
       await api.updateCultivation((item) => {

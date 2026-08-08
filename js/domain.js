@@ -4,6 +4,66 @@ export const id = (prefix) =>
 export const now = () => new Date().toISOString();
 export const hoursFrom = (date, hours) =>
   new Date(new Date(date).getTime() + hours * 3600000).toISOString();
+
+/**
+ * Parse the decimal notation people actually use in Spanish-speaking locales.
+ * Inputs remain strings so a comma is never rejected by the browser before the
+ * application has a chance to normalise it.
+ */
+export function parseDecimal(value) {
+  const normalized = String(value ?? "")
+    .trim()
+    .replace(/\s/g, "")
+    .replace(",", ".");
+  if (!normalized || !/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(normalized))
+    return Number.NaN;
+  return Number(normalized);
+}
+
+export function formatDecimal(value, maximumFractionDigits = 2) {
+  if (!Number.isFinite(Number(value))) return "—";
+  return new Intl.NumberFormat("es-AR", {
+    maximumFractionDigits,
+  }).format(Number(value));
+}
+
+export function calendarWeek(fechaInicio, reference = new Date()) {
+  const startedAt = new Date(fechaInicio).getTime();
+  const at = new Date(reference).getTime();
+  if (!Number.isFinite(startedAt) || !Number.isFinite(at)) return 0;
+  return Math.min(14, Math.max(0, Math.floor((at - startedAt) / 604800000)));
+}
+
+export function dateInputValue(iso) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (!Number.isFinite(date.getTime())) return "";
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+}
+
+export function dateFromInput(value, existingIso = now()) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))) return existingIso;
+  // Midday local avoids a date shifting backward when shown in America/Argentina.
+  return new Date(`${value}T12:00:00`).toISOString();
+}
+
+export function stageThemeKey(stage = "") {
+  const normalized = String(stage)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  if (normalized.includes("enraiz")) return "enraizado";
+  if (normalized.includes("vegetativo temprano")) return "vegetativo-temprano";
+  if (normalized.includes("vegetativo tardio")) return "vegetativo-tardio";
+  if (normalized.includes("preflora")) return "preflora";
+  if (normalized.includes("estiramiento")) return "flora-estiramiento";
+  if (normalized.includes("engorde")) return "flora-engorde";
+  if (normalized.includes("maduracion")) return "maduracion";
+  if (normalized.includes("lavado")) return "lavado";
+  if (normalized.includes("cosecha")) return "cosecha";
+  return "enraizado";
+}
 function readingValue(value) {
   return value && typeof value === "object" && "valor" in value
     ? value.valor
