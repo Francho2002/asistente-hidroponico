@@ -1,0 +1,847 @@
+{
+  "formato": "asistente-cultivo",
+  "version": 1,
+  "tipo": "plantilla",
+  "id": "eyeballz-4-dwc-independientes",
+  "nombre": "Eyeballz — 4 DWC independientes",
+  "descripcion": "Plantilla editable para cuatro semillas en lana de roca y cuatro DWC independientes.",
+  "configuracion": {
+    "nombre": "Eyeballz — 4 DWC independientes",
+    "variedad": "Eyeballz",
+    "banco": "Ripper Seeds",
+    "espacio": {
+      "nombre": "Carpa principal",
+      "largoM": 2,
+      "anchoM": 1,
+      "altoM": 1
+    },
+    "dwcs": [
+      {
+        "id": "dwc-1",
+        "nombre": "DWC 1",
+        "capacidadNominalLitros": 20,
+        "volumenTrabajoLitros": 16
+      },
+      {
+        "id": "dwc-2",
+        "nombre": "DWC 2",
+        "capacidadNominalLitros": 20,
+        "volumenTrabajoLitros": 16
+      },
+      {
+        "id": "dwc-3",
+        "nombre": "DWC 3",
+        "capacidadNominalLitros": 20,
+        "volumenTrabajoLitros": 16
+      },
+      {
+        "id": "dwc-4",
+        "nombre": "DWC 4",
+        "capacidadNominalLitros": 20,
+        "volumenTrabajoLitros": 16
+      }
+    ],
+    "plantas": [
+      {
+        "id": "planta-a",
+        "nombre": "Planta A",
+        "variedad": "Eyeballz",
+        "banco": "Ripper Seeds",
+        "estado": "semilla_en_lana_de_roca"
+      },
+      {
+        "id": "planta-b",
+        "nombre": "Planta B",
+        "variedad": "Eyeballz",
+        "banco": "Ripper Seeds",
+        "estado": "semilla_en_lana_de_roca"
+      },
+      {
+        "id": "planta-c",
+        "nombre": "Planta C",
+        "variedad": "Eyeballz",
+        "banco": "Ripper Seeds",
+        "estado": "semilla_en_lana_de_roca"
+      },
+      {
+        "id": "planta-d",
+        "nombre": "Planta D",
+        "variedad": "Eyeballz",
+        "banco": "Ripper Seeds",
+        "estado": "semilla_en_lana_de_roca"
+      }
+    ],
+    "equipos": [
+      {
+        "id": "led-500w",
+        "nombre": "Panel LED 500 W",
+        "categoria": "iluminacion",
+        "capacidades": [
+          "controles binarios de potencia/espectro"
+        ]
+      },
+      {
+        "id": "aire-acondicionado",
+        "nombre": "Aire acondicionado",
+        "categoria": "climatizacion",
+        "descripcion": "Configuración fija de 24 °C"
+      },
+      {
+        "id": "sonoff-thr320d",
+        "nombre": "Sonoff TH Elite THR320D + THS01",
+        "categoria": "sensor",
+        "capacidades": [
+          "temperatura",
+          "humedad",
+          "relé humidificador"
+        ]
+      },
+      {
+        "id": "humidificador-4l",
+        "nombre": "Humidificador 4 L",
+        "categoria": "humidificacion",
+        "descripcion": "Controlado por el relé Sonoff"
+      },
+      {
+        "id": "extractor-filtro",
+        "nombre": "Extractor con filtro de carbón",
+        "categoria": "ventilacion"
+      },
+      {
+        "id": "aireadores",
+        "nombre": "Dos aireadores de doble salida",
+        "categoria": "aireacion",
+        "capacidades": [
+          "4 piedras difusoras"
+        ]
+      },
+      {
+        "id": "labymos-ez9902",
+        "nombre": "Labymos EZ9902",
+        "categoria": "instrumento",
+        "capacidades": [
+          "pH",
+          "EC",
+          "temperatura de líquidos"
+        ]
+      }
+    ],
+    "fuentesVariables": [
+      {
+        "variable": "temperatura_ambiente",
+        "unidad": "°C",
+        "fuente": {
+          "modo": "automatica",
+          "equipoId": "sonoff-thr320d",
+          "etiqueta": "Sonoff THS01",
+          "pendienteConexion": true
+        }
+      },
+      {
+        "variable": "humedad",
+        "unidad": "%",
+        "fuente": {
+          "modo": "automatica",
+          "equipoId": "sonoff-thr320d",
+          "etiqueta": "Sonoff THS01",
+          "pendienteConexion": true
+        }
+      },
+      {
+        "variable": "estado_humidificador",
+        "fuente": {
+          "modo": "automatica",
+          "equipoId": "sonoff-thr320d",
+          "etiqueta": "Sonoff THR320D",
+          "pendienteConexion": true
+        }
+      },
+      {
+        "variable": "estado_aire_acondicionado",
+        "fuente": {
+          "modo": "no_disponible",
+          "etiqueta": "No disponible"
+        }
+      },
+      {
+        "variable": "ph",
+        "unidad": "pH",
+        "fuente": {
+          "modo": "manual",
+          "equipoId": "labymos-ez9902",
+          "etiqueta": "Labymos EZ9902"
+        }
+      },
+      {
+        "variable": "ec",
+        "unidad": "mS/cm",
+        "fuente": {
+          "modo": "manual",
+          "equipoId": "labymos-ez9902",
+          "etiqueta": "Labymos EZ9902"
+        }
+      },
+      {
+        "variable": "temperatura_solucion",
+        "unidad": "°C",
+        "fuente": {
+          "modo": "manual",
+          "equipoId": "labymos-ez9902",
+          "etiqueta": "Labymos EZ9902"
+        }
+      },
+      {
+        "variable": "ppfd",
+        "unidad": "µmol/m²/s",
+        "fuente": {
+          "modo": "no_disponible",
+          "etiqueta": "Referencia del plan"
+        }
+      }
+    ],
+    "inventario": [
+      {
+        "id": "nutriente-macro",
+        "nombre": "Nutriente Macro",
+        "cantidad": 2,
+        "unidad": "L",
+        "umbralBajo": 0.25
+      },
+      {
+        "id": "nutriente-micro",
+        "nombre": "Nutriente Micro",
+        "cantidad": 2,
+        "unidad": "L",
+        "umbralBajo": 0.25
+      },
+      {
+        "id": "nutriente-bloom",
+        "nombre": "Nutriente Bloom",
+        "cantidad": 2,
+        "unidad": "L",
+        "umbralBajo": 0.25
+      },
+      {
+        "id": "reductor-ph",
+        "nombre": "Reductor de pH",
+        "cantidad": 600,
+        "unidad": "mL",
+        "umbralBajo": 100
+      },
+      {
+        "id": "lana-roca",
+        "nombre": "Lana de roca N.º 6 instalada",
+        "cantidad": 4,
+        "unidad": "unidad"
+      },
+      {
+        "id": "maceta-rejilla",
+        "nombre": "Maceta rejilla N.º 6 instalada",
+        "cantidad": 4,
+        "unidad": "unidad"
+      },
+      {
+        "id": "piedra-difusora",
+        "nombre": "Piedra difusora",
+        "cantidad": 4,
+        "unidad": "unidad"
+      },
+      {
+        "id": "microtubo",
+        "nombre": "Microtubo",
+        "cantidad": 4,
+        "unidad": "m"
+      },
+      {
+        "id": "ventosa",
+        "nombre": "Ventosa",
+        "cantidad": 4,
+        "unidad": "unidad"
+      }
+    ],
+    "plan": {
+      "semanas": [
+        {
+          "semana": 0,
+          "etapa": "Enraizado",
+          "dosis": [
+            {
+              "productoId": "nutriente-macro",
+              "producto": "Macro",
+              "mililitrosPorLitro": 1.5
+            },
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.5
+            }
+          ],
+          "fotoperiodo": "18/6",
+          "ppfdReferencia": {
+            "minimo": 450,
+            "maximo": 550
+          },
+          "humedadObjetivo": {
+            "minimo": 70,
+            "maximo": 75
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 1.4,
+          "phObjetivo": 5.8
+        },
+        {
+          "semana": 1,
+          "etapa": "Vegetativo temprano",
+          "dosis": [
+            {
+              "productoId": "nutriente-macro",
+              "producto": "Macro",
+              "mililitrosPorLitro": 1.5
+            },
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.5
+            }
+          ],
+          "fotoperiodo": "18/6",
+          "ppfdReferencia": {
+            "minimo": 500,
+            "maximo": 600
+          },
+          "humedadObjetivo": {
+            "minimo": 60,
+            "maximo": 65
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 1.4,
+          "phObjetivo": 5.8
+        },
+        {
+          "semana": 2,
+          "etapa": "Vegetativo temprano",
+          "dosis": [
+            {
+              "productoId": "nutriente-macro",
+              "producto": "Macro",
+              "mililitrosPorLitro": 1.6
+            },
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.6
+            }
+          ],
+          "fotoperiodo": "18/6",
+          "ppfdReferencia": {
+            "minimo": 500,
+            "maximo": 600
+          },
+          "humedadObjetivo": {
+            "minimo": 60,
+            "maximo": 65
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 1.5,
+          "phObjetivo": 5.8
+        },
+        {
+          "semana": 3,
+          "etapa": "Vegetativo tardío",
+          "dosis": [
+            {
+              "productoId": "nutriente-macro",
+              "producto": "Macro",
+              "mililitrosPorLitro": 1.7
+            },
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.7
+            }
+          ],
+          "fotoperiodo": "18/6",
+          "ppfdReferencia": {
+            "minimo": 600,
+            "maximo": 800
+          },
+          "humedadObjetivo": {
+            "minimo": 60,
+            "maximo": 65
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 1.6,
+          "phObjetivo": 5.8
+        },
+        {
+          "semana": 4,
+          "etapa": "Vegetativo tardío",
+          "dosis": [
+            {
+              "productoId": "nutriente-macro",
+              "producto": "Macro",
+              "mililitrosPorLitro": 1.85
+            },
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.85
+            }
+          ],
+          "fotoperiodo": "18/6",
+          "ppfdReferencia": {
+            "minimo": 600,
+            "maximo": 800
+          },
+          "humedadObjetivo": {
+            "minimo": 60,
+            "maximo": 65
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 1.7,
+          "phObjetivo": 5.8
+        },
+        {
+          "semana": 5,
+          "etapa": "Preflora",
+          "dosis": [
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.5
+            },
+            {
+              "productoId": "nutriente-bloom",
+              "producto": "Bloom",
+              "mililitrosPorLitro": 3
+            }
+          ],
+          "fotoperiodo": "12/12",
+          "ppfdReferencia": {
+            "minimo": 600,
+            "maximo": 800
+          },
+          "humedadObjetivo": {
+            "minimo": 50,
+            "maximo": 55
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 1.8,
+          "phObjetivo": 5.8
+        },
+        {
+          "semana": 6,
+          "etapa": "Flora–estiramiento",
+          "dosis": [
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.5
+            },
+            {
+              "productoId": "nutriente-bloom",
+              "producto": "Bloom",
+              "mililitrosPorLitro": 3
+            }
+          ],
+          "fotoperiodo": "12/12",
+          "ppfdReferencia": {
+            "minimo": 800,
+            "maximo": 1000
+          },
+          "humedadObjetivo": {
+            "minimo": 50,
+            "maximo": 55
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 1.8,
+          "phObjetivo": 6
+        },
+        {
+          "semana": 7,
+          "etapa": "Flora–estiramiento",
+          "dosis": [
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.5
+            },
+            {
+              "productoId": "nutriente-bloom",
+              "producto": "Bloom",
+              "mililitrosPorLitro": 3
+            }
+          ],
+          "fotoperiodo": "12/12",
+          "ppfdReferencia": {
+            "minimo": 800,
+            "maximo": 1000
+          },
+          "humedadObjetivo": {
+            "minimo": 50,
+            "maximo": 55
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 1.8,
+          "phObjetivo": 6.2
+        },
+        {
+          "semana": 8,
+          "etapa": "Flora–engorde",
+          "dosis": [
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.5
+            },
+            {
+              "productoId": "nutriente-bloom",
+              "producto": "Bloom",
+              "mililitrosPorLitro": 3
+            }
+          ],
+          "fotoperiodo": "12/12",
+          "ppfdReferencia": {
+            "minimo": 800,
+            "maximo": 1000
+          },
+          "humedadObjetivo": {
+            "minimo": 50,
+            "maximo": 55
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 1.8,
+          "phObjetivo": 6.2
+        },
+        {
+          "semana": 9,
+          "etapa": "Flora–engorde",
+          "dosis": [
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.4
+            },
+            {
+              "productoId": "nutriente-bloom",
+              "producto": "Bloom",
+              "mililitrosPorLitro": 4.2
+            }
+          ],
+          "fotoperiodo": "12/12",
+          "ppfdReferencia": {
+            "minimo": 800,
+            "maximo": 1000
+          },
+          "humedadObjetivo": {
+            "minimo": 50,
+            "maximo": 55
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 2.2,
+          "phObjetivo": 6.4
+        },
+        {
+          "semana": 10,
+          "etapa": "Flora–engorde",
+          "dosis": [
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.4
+            },
+            {
+              "productoId": "nutriente-bloom",
+              "producto": "Bloom",
+              "mililitrosPorLitro": 4.2
+            }
+          ],
+          "fotoperiodo": "12/12",
+          "ppfdReferencia": {
+            "minimo": 800,
+            "maximo": 1000
+          },
+          "humedadObjetivo": {
+            "minimo": 50,
+            "maximo": 55
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 2.2,
+          "phObjetivo": 6.4
+        },
+        {
+          "semana": 11,
+          "etapa": "Maduración",
+          "dosis": [
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.4
+            },
+            {
+              "productoId": "nutriente-bloom",
+              "producto": "Bloom",
+              "mililitrosPorLitro": 4.2
+            }
+          ],
+          "fotoperiodo": "12/12",
+          "ppfdReferencia": {
+            "minimo": 800,
+            "maximo": 1000
+          },
+          "humedadObjetivo": {
+            "minimo": 50,
+            "maximo": 55
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 2.2,
+          "phObjetivo": 6.4
+        },
+        {
+          "semana": 12,
+          "etapa": "Maduración",
+          "dosis": [
+            {
+              "productoId": "nutriente-micro",
+              "producto": "Micro",
+              "mililitrosPorLitro": 1.4
+            },
+            {
+              "productoId": "nutriente-bloom",
+              "producto": "Bloom",
+              "mililitrosPorLitro": 4.2
+            }
+          ],
+          "fotoperiodo": "12/12",
+          "ppfdReferencia": {
+            "minimo": 800,
+            "maximo": 1000
+          },
+          "humedadObjetivo": {
+            "minimo": 50,
+            "maximo": 55
+          },
+          "temperaturaObjetivoC": 24,
+          "ecObjetivo": 2.2,
+          "phObjetivo": 6.4
+        },
+        {
+          "semana": 13,
+          "etapa": "Lavado",
+          "dosis": [],
+          "fotoperiodo": "12/12",
+          "ppfdReferencia": {
+            "minimo": 800,
+            "maximo": 1000
+          },
+          "humedadObjetivo": {
+            "minimo": 50,
+            "maximo": 55
+          },
+          "temperaturaObjetivoC": 24
+        },
+        {
+          "semana": 14,
+          "etapa": "Cosecha",
+          "dosis": [],
+          "fotoperiodo": "12/12",
+          "ppfdReferencia": {
+            "minimo": 800,
+            "maximo": 1000
+          },
+          "humedadObjetivo": {
+            "minimo": 50,
+            "maximo": 55
+          },
+          "temperaturaObjetivoC": 24
+        }
+      ],
+      "cambioEtapaRequiereConfirmacion": true,
+      "instruccionesPreparacion": [
+        "Comenzar con el agua y calcular las dosis de la semana activa.",
+        "Añadir cada producto al agua individualmente y mezclar por completo antes del siguiente.",
+        "Nunca juntar Macro, Micro y Bloom concentrados entre sí.",
+        "Medir EC tras incorporar nutrientes; ajustar pH después.",
+        "Registrar pH, EC y temperatura finales antes de repartir 16 L por DWC.",
+        "Consultar el envase o QR de Verdeagua para el orden oficial Macro–Micro–Bloom."
+      ]
+    },
+    "reglasTareas": [
+      {
+        "id": "revisar-agua",
+        "titulo": "Revisar nivel de agua",
+        "descripcion": "Comprobar nivel, raíces, olor y claridad.",
+        "alcance": {
+          "tipo": "dwc"
+        },
+        "frecuenciaHoras": 24,
+        "eventoSugerido": "reposicion_agua",
+        "activa": true
+      },
+      {
+        "id": "medir-solucion",
+        "titulo": "Medir solución",
+        "descripcion": "Registrar pH, EC y temperatura con el Labymos.",
+        "alcance": {
+          "tipo": "dwc"
+        },
+        "frecuenciaHoras": 48,
+        "eventoSugerido": "medicion_solucion",
+        "activa": true
+      },
+      {
+        "id": "renovar-solucion",
+        "titulo": "Renovar solución",
+        "descripcion": "Renovar por completo y registrar los insumos usados.",
+        "alcance": {
+          "tipo": "dwc"
+        },
+        "frecuenciaHoras": 168,
+        "eventoSugerido": "cambio_solucion",
+        "activa": true
+      },
+      {
+        "id": "calibrar-labymos",
+        "titulo": "Calibrar Labymos",
+        "alcance": {
+          "tipo": "equipo",
+          "id": "labymos-ez9902"
+        },
+        "frecuenciaHoras": 720,
+        "eventoSugerido": "mantenimiento",
+        "activa": true
+      },
+      {
+        "id": "mantener-aireacion",
+        "titulo": "Revisar aireación",
+        "alcance": {
+          "tipo": "equipo",
+          "id": "aireadores"
+        },
+        "frecuenciaHoras": 168,
+        "eventoSugerido": "mantenimiento",
+        "activa": true
+      }
+    ],
+    "reglasAlertas": [
+      {
+        "id": "humedad-fuera-rango",
+        "nombre": "Humedad persistente fuera de rango",
+        "severidad": "alerta",
+        "descripcion": "Humedad fuera del objetivo de la etapa durante 15 minutos.",
+        "condicion": "humedad fuera de rango por 15 min",
+        "activa": true,
+        "notificacionNavegador": true
+      },
+      {
+        "id": "temperatura-fuera-rango",
+        "nombre": "Temperatura ambiental fuera de rango",
+        "severidad": "alerta",
+        "descripcion": "Menor de 22 °C o mayor de 26 °C durante 15 minutos.",
+        "condicion": "temperatura <22 o >26 por 15 min",
+        "activa": true,
+        "notificacionNavegador": true
+      },
+      {
+        "id": "sonoff-sin-datos",
+        "nombre": "Sonoff sin datos",
+        "severidad": "aviso",
+        "descripcion": "El sensor no ha enviado datos durante el periodo esperado.",
+        "condicion": "lectura ambiental vencida",
+        "activa": true,
+        "notificacionNavegador": true
+      },
+      {
+        "id": "humidificador-sin-mejora",
+        "nombre": "Humidificador sin mejora",
+        "severidad": "aviso",
+        "descripcion": "El humidificador está encendido y la humedad no mejora.",
+        "condicion": "relé activo sin aumento apreciable",
+        "activa": true
+      },
+      {
+        "id": "humidificador-exceso",
+        "nombre": "Humidificador con exceso de humedad",
+        "severidad": "alerta",
+        "descripcion": "Humidificador encendido por encima del máximo de humedad.",
+        "condicion": "relé activo y humedad > máximo",
+        "activa": true,
+        "notificacionNavegador": true
+      },
+      {
+        "id": "medicion-72h",
+        "nombre": "Medición de solución atrasada",
+        "severidad": "aviso",
+        "descripcion": "Han pasado 72 horas desde la última medición.",
+        "condicion": "medición DWC >72h",
+        "activa": true,
+        "notificacionNavegador": true
+      },
+      {
+        "id": "ph-general",
+        "nombre": "pH fuera del rango general",
+        "severidad": "alerta",
+        "descripcion": "pH menor de 5,5 o mayor de 6,5 tras una medición.",
+        "condicion": "pH <5.5 o >6.5",
+        "activa": true
+      },
+      {
+        "id": "ec-objetivo",
+        "nombre": "EC fuera del objetivo",
+        "severidad": "aviso",
+        "descripcion": "La EC difiere del objetivo de la semana activa.",
+        "condicion": "EC != objetivo",
+        "activa": true
+      },
+      {
+        "id": "renovacion-pendiente",
+        "nombre": "Renovación pendiente",
+        "severidad": "aviso",
+        "descripcion": "Han pasado siete días desde la última renovación.",
+        "condicion": "cambio solución >7d",
+        "activa": true,
+        "notificacionNavegador": true
+      },
+      {
+        "id": "planta-sin-dwc",
+        "nombre": "Planta sin DWC",
+        "severidad": "aviso",
+        "descripcion": "Una planta activa no tiene asignación abierta.",
+        "condicion": "planta activa sin asignación",
+        "activa": true
+      },
+      {
+        "id": "incidencia-abierta",
+        "nombre": "Incidencia abierta",
+        "severidad": "aviso",
+        "descripcion": "Una incidencia sigue sin seguimiento.",
+        "condicion": "incidencia activa sin actualización",
+        "activa": true,
+        "notificacionNavegador": true
+      }
+    ],
+    "estadoInicial": {
+      "semanaActiva": 0,
+      "etapaActiva": "Enraizado",
+      "activo": true
+    },
+    "asignacionesIniciales": [
+      {
+        "plantaId": "planta-a",
+        "dwcId": "dwc-1"
+      },
+      {
+        "plantaId": "planta-b",
+        "dwcId": "dwc-2"
+      },
+      {
+        "plantaId": "planta-c",
+        "dwcId": "dwc-3"
+      },
+      {
+        "plantaId": "planta-d",
+        "dwcId": "dwc-4"
+      }
+    ]
+  }
+}
