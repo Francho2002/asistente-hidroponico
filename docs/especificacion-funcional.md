@@ -169,7 +169,7 @@ La etapa describe el momento general del cultivo. La semana del plan determina l
 | 5 | Preflora | — | 1,5 mL/L | 3 mL/L | 1,8 mS/cm | 5,8 | 12/12 | 600–800 | 50–55 % |
 | 6 | Flora–estiramiento | — | 1,5 mL/L | 3 mL/L | 1,8 mS/cm | 6,0 | 12/12 | 800–1000 | 50–55 % |
 | 7 | Flora–estiramiento | — | 1,5 mL/L | 3 mL/L | 1,8 mS/cm | 6,2 | 12/12 | 800–1000 | 50–55 % |
-| 8 | Flora–engorde | — | 1,5 mL/L | 3 mL/L | 1,8 mS/cm | 6,2 | 12/12 | 800–1000 | 50–55 % |
+| 8 | Flora–estiramiento | — | 1,5 mL/L | 3 mL/L | 1,8 mS/cm | 6,2 | 12/12 | 800–1000 | 50–55 % |
 | 9 | Flora–engorde | — | 1,4 mL/L | 4,2 mL/L | 2,2 mS/cm | 6,4 | 12/12 | 800–1000 | 50–55 % |
 | 10 | Flora–engorde | — | 1,4 mL/L | 4,2 mL/L | 2,2 mS/cm | 6,4 | 12/12 | 800–1000 | 50–55 % |
 | 11 | Maduración | — | 1,4 mL/L | 4,2 mL/L | 2,2 mS/cm | 6,4 | 12/12 | 800–1000 | 50–55 % |
@@ -429,3 +429,9 @@ No existe una lista rígida de aprobación previa. Al importar, el cultivo puede
 - Oklahoma State University, gestión de pH y EC: https://extension.okstate.edu/fact-sheets/electrical-conductivity-and-ph-guide-for-hydroponics
 - Virginia Tech, DWC y frecuencia de control: https://ext.vt.edu/content/dam/pubs_ext_vt_edu/spes/spes-464/SPES-464.pdf
 - SonoffLAN, soporte local de THR316D/THR320D: https://github.com/AlexxIT/SonoffLAN
+
+### Procedencia de la receta Eyeballz
+
+- La tabla Verdeagua entregada por la persona usuaria es la fuente obligatoria de la receta semanas 0–14. La aplicación la conserva literalmente y no la reemplaza con una recomendación propia.
+- La ficha oficial de [Ripper Seeds — Eyeballz](https://www.ripperseeds.com/es/feminizadas/eyeballz-semillas-feminizadas-de-marihuana) informa 60–65 días (8–9 semanas) de floración interior y producción media–alta. El paso a 12/12 en semana 5 y la cosecha planificada en semana 14 dejan 63 días, dentro de esa ventana; la cosecha continúa siendo una confirmación manual, no un cambio automático de etapa.
+- La evidencia comunitaria de GrowDiaries es limitada (7 diarios y 3 cosechas consultados, sin un caso DWC verificable): queda solo como contexto y no automatiza EC, pH, dosis, humedad ni fecha de cosecha.

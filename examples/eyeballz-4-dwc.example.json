@@ -487,7 +487,7 @@
         },
         {
           "semana": 8,
-          "etapa": "Flora–engorde",
+          "etapa": "Flora–estiramiento",
           "dosis": [
             {
               "productoId": "nutriente-micro",
@@ -665,6 +665,27 @@
         "Registrar pH, EC y temperatura finales antes de repartir 16 L por DWC.",
         "Consultar el envase o QR de Verdeagua para el orden oficial Macro–Micro–Bloom."
       ]
+    },
+    "procedenciaPlan": {
+      "receta": {
+        "tipo": "obligatoria",
+        "etiqueta": "Tabla Verdeagua aportada por la persona usuaria",
+        "alcance": "Receta semanas 0–14: dosis Macro, Micro y Bloom; EC, pH, fotoperiodo y PPFD.",
+        "nota": "La tabla se conserva literalmente; no es una recomendación generada por la aplicación."
+      },
+      "variedad": {
+        "tipo": "referencia de fabricante",
+        "etiqueta": "Ripper Seeds — Eyeballz",
+        "url": "https://www.ripperseeds.com/es/feminizadas/eyeballz-semillas-feminizadas-de-marihuana",
+        "datos": "Floración interior 60–65 días (8–9 semanas); producción media–alta.",
+        "notaCompatibilidad": "El cambio a 12/12 en semana 5 y la cosecha planificada en semana 14 separan 63 días, dentro de la ventana oficial de 60–65 días. La cosecha sigue requiriendo confirmación manual."
+      },
+      "contextoComunitario": {
+        "tipo": "contexto limitado",
+        "etiqueta": "GrowDiaries: 7 diarios / 3 cosechas revisados; sin caso DWC verificable.",
+        "url": "https://growdiaries.com/seedbank/ripper-seeds/eyeballz",
+        "uso": "Solo contexto; no automatiza ni modifica EC, pH, dosis, humedad o cosecha."
+      }
     },
     "reglasTareas": [
       {

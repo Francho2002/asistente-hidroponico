@@ -1,5 +1,9 @@
 import { loadState, saveState, clearState } from "./storage.js";
-import { loadEyeballzTemplate, validateTemplate } from "./template.js";
+import {
+  loadEyeballz1DwcTemplate,
+  loadEyeballzTemplate,
+  validateTemplate,
+} from "./template.js";
 import { createHashRouter } from "./ui/router.js";
 import { createModal } from "./ui/modal.js";
 import { card, escapeHtml as escape, formatDate as date } from "./ui/shared.js";
@@ -275,6 +279,7 @@ function bindSettings() {
   $("#settings-sonoff").onclick = openSonoffConfiguration;
   $("#settings-sonoff-refresh").onclick = refreshSonoff;
   $("#settings-ai-template").onclick = openAiTemplatePrompt;
+  $("#settings-download-template-1-dwc").onclick = downloadEyeballz1DwcTemplate;
   $("#sync-export").onclick = sincronizacion.exportForOther;
   $("#sync-merge").onclick = sincronizacion.openMerge;
   $("#sync-undo").onclick = sincronizacion.undo;
@@ -438,11 +443,24 @@ $("#start-example").onclick = async () => {
   render();
   showToast("Ejemplo Eyeballz creado.");
 };
+$("#start-example-1-dwc").onclick = async () => {
+  const c = createCultivation(await loadEyeballz1DwcTemplate());
+  await store.add(c);
+  render();
+  showToast("Ejemplo Eyeballz de 1 DWC creado.");
+};
 $("#download-template").onclick = async () =>
   downloadJson(
     "eyeballz-4-dwc.example.json",
     JSON.stringify(await loadEyeballzTemplate(), null, 2),
   );
+async function downloadEyeballz1DwcTemplate() {
+  downloadJson(
+    "eyeballz-1-dwc.example.json",
+    JSON.stringify(await loadEyeballz1DwcTemplate(), null, 2),
+  );
+}
+$("#download-template-1-dwc").onclick = downloadEyeballz1DwcTemplate;
 $("#welcome-ai-template").onclick = openAiTemplatePrompt;
 $("#import-file").onchange = (e) => importFile(e.target.files[0]);
 $("#welcome-import").onchange = (e) => importFile(e.target.files[0]);

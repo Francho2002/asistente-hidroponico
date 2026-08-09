@@ -2,9 +2,13 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import test from "node:test";
-import { validateTemplate } from "../js/template.js";
+import {
+  createEyeballz1DwcTemplate,
+  validateTemplate,
+} from "../js/template.js";
 import {
   calendarWeek,
+  createCultivation,
   formatDecimal,
   normalizeCultivation,
   parseDecimal,
@@ -284,6 +288,10 @@ test("los fondos PWM locales cubren todas las etapas y el panel usa el conector"
   assert.doesNotMatch(panel, /Importar lecturas JSON/);
   assert.match(settings, /Importar lecturas JSON \(respaldo\)/);
   assert.match(html, /welcome-ai-template/);
+  assert.match(html, /start-example-1-dwc/);
+  assert.match(html, /download-template-1-dwc/);
+  assert.match(settings, /settings-download-template-1-dwc/);
+  assert.match(app, /loadEyeballz1DwcTemplate/);
   assert.match(app, /createSonoffHomeAssistant/);
 });
 
@@ -304,6 +312,72 @@ test("mantiene la plantilla Eyeballz y el ciclo semanal completo", async () => {
   assert.deepEqual(
     template.configuracion.plan.semanas.map((x) => x.semana),
     Array.from({ length: 15 }, (_, i) => i),
+  );
+});
+test("la receta Eyeballz reproduce literalmente la tabla Verdeagua semanas 0–14", async () => {
+  const template = JSON.parse(await read("examples/eyeballz-4-dwc.example.json"));
+  const literal = [
+    ["Enraizado", 1.5, 1.5, null, 1.4, 5.8, "18/6", 450, 550],
+    ["Vegetativo temprano", 1.5, 1.5, null, 1.4, 5.8, "18/6", 500, 600],
+    ["Vegetativo temprano", 1.6, 1.6, null, 1.5, 5.8, "18/6", 500, 600],
+    ["Vegetativo tardío", 1.7, 1.7, null, 1.6, 5.8, "18/6", 600, 800],
+    ["Vegetativo tardío", 1.85, 1.85, null, 1.7, 5.8, "18/6", 600, 800],
+    ["Preflora", null, 1.5, 3, 1.8, 5.8, "12/12", 600, 800],
+    ["Flora–estiramiento", null, 1.5, 3, 1.8, 6, "12/12", 800, 1000],
+    ["Flora–estiramiento", null, 1.5, 3, 1.8, 6.2, "12/12", 800, 1000],
+    ["Flora–estiramiento", null, 1.5, 3, 1.8, 6.2, "12/12", 800, 1000],
+    ["Flora–engorde", null, 1.4, 4.2, 2.2, 6.4, "12/12", 800, 1000],
+    ["Flora–engorde", null, 1.4, 4.2, 2.2, 6.4, "12/12", 800, 1000],
+    ["Maduración", null, 1.4, 4.2, 2.2, 6.4, "12/12", 800, 1000],
+    ["Maduración", null, 1.4, 4.2, 2.2, 6.4, "12/12", 800, 1000],
+    ["Lavado", null, null, null, null, null, "12/12", 800, 1000],
+    ["Cosecha", null, null, null, null, null, "12/12", 800, 1000],
+  ];
+  const compact = template.configuracion.plan.semanas.map((week) => {
+    const dose = (product) => week.dosis.find((item) => item.producto === product)?.mililitrosPorLitro ?? null;
+    return [week.etapa, dose("Macro"), dose("Micro"), dose("Bloom"), week.ecObjetivo ?? null, week.phObjetivo ?? null, week.fotoperiodo, week.ppfdReferencia.minimo, week.ppfdReferencia.maximo];
+  });
+  assert.deepEqual(compact, literal);
+  assert.equal(template.configuracion.procedenciaPlan.receta.tipo, "obligatoria");
+  assert.match(template.configuracion.procedenciaPlan.variedad.url, /^https:\/\/www\.ripperseeds\.com\//);
+  const changeToTwelve = template.configuracion.plan.semanas.find((week) => week.fotoperiodo === "12/12").semana;
+  const harvest = template.configuracion.plan.semanas.find((week) => week.etapa === "Cosecha").semana;
+  const floweringDays = (harvest - changeToTwelve) * 7;
+  assert.equal(floweringDays, 63);
+  assert.ok(floweringDays >= 60 && floweringDays <= 65);
+  assert.match(template.configuracion.procedenciaPlan.variedad.notaCompatibilidad, /confirmación manual/i);
+  assert.equal(
+    template.configuracion.procedenciaPlan.contextoComunitario.url,
+    "https://growdiaries.com/seedbank/ripper-seeds/eyeballz",
+  );
+  assert.match(template.configuracion.procedenciaPlan.contextoComunitario.uso, /no automatiza/i);
+});
+test("ofrece Eyeballz 1 DWC con la misma tabla y tareas de una sola unidad", async () => {
+  const fourDwc = JSON.parse(await read("examples/eyeballz-4-dwc.example.json"));
+  const oneDwc = createEyeballz1DwcTemplate(fourDwc);
+  assert.equal(validateTemplate(oneDwc), oneDwc);
+  assert.equal(oneDwc.id, "eyeballz-1-dwc-independiente");
+  assert.equal(oneDwc.configuracion.dwcs.length, 1);
+  assert.equal(oneDwc.configuracion.plantas.length, 1);
+  assert.deepEqual(oneDwc.configuracion.asignacionesIniciales, [
+    { plantaId: "planta-a", dwcId: "dwc-1" },
+  ]);
+  assert.equal(oneDwc.configuracion.dwcs[0].volumenTrabajoLitros, 16);
+  assert.equal(oneDwc.configuracion.dwcs[0].capacidadNominalLitros, 20);
+  assert.deepEqual(oneDwc.configuracion.plan.semanas, fourDwc.configuracion.plan.semanas);
+  const cultivation = createCultivation(oneDwc, "2026-08-09T12:00:00.000Z");
+  const dwcTasks = cultivation.tareas.filter((task) => task.alcance?.tipo === "dwc");
+  assert.equal(dwcTasks.length, 3);
+  assert.deepEqual(new Set(dwcTasks.map((task) => task.alcance.id)), new Set(["dwc-1"]));
+  assert.equal(new Set(dwcTasks.map((task) => task.reglaId)).size, 3);
+  assert.equal(
+    cultivation.tareas.find((task) => task.titulo === "Comprobar aireadores")?.descripcion,
+    "Confirmar que la piedra difusora recibe aire.",
+  );
+  const fourCultivation = createCultivation(fourDwc, "2026-08-09T12:00:00.000Z");
+  assert.equal(
+    fourCultivation.tareas.find((task) => task.titulo === "Comprobar aireadores")?.descripcion,
+    "Confirmar aireación de las cuatro piedras.",
   );
 });
 test("rechaza copias de seguridad incompletas", () => {

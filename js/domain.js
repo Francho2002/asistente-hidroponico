@@ -100,6 +100,12 @@ export function currentPlan(cultivation) {
 export function createCultivation(template, date = now()) {
   const c = clone(template.configuracion);
   const { estadoInicial, asignacionesIniciales, ...base } = c;
+  const aireacionInicial =
+    base.dwcs.length === 1
+      ? "Confirmar que la piedra difusora recibe aire."
+      : base.dwcs.length === 4
+        ? "Confirmar aireación de las cuatro piedras."
+        : `Confirmar aireación de las ${base.dwcs.length} piedras difusoras.`;
   const tasks = [
     {
       titulo: "Preparar la solución inicial",
@@ -111,7 +117,7 @@ export function createCultivation(template, date = now()) {
       titulo: "Comprobar aireadores",
       alcance: { tipo: "equipo", id: "aireadores" },
       venceEn: date,
-      descripcion: "Confirmar aireación de las cuatro piedras.",
+      descripcion: aireacionInicial,
     },
   ];
   base.dwcs.forEach((dwc) =>

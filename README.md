@@ -33,7 +33,7 @@ Abrí `http://localhost:3000`. No abras `index.html` directamente: la plantilla 
 
 ## Funciones incluidas
 
-- Ejemplo e importación de la plantilla Eyeballz con 4 DWC independientes y asignaciones Planta↔DWC.
+- Ejemplo e importación de la plantilla Eyeballz con 4 DWC independientes y asignaciones Planta↔DWC; también incluye una variante descargable/importable de 1 DWC derivada de la misma receta 0–14.
 - Plan confirmado de semanas 0 a 14, tareas, alertas y notificaciones del navegador.
 - Mediciones agrupadas de pH, EC y temperatura por DWC; reposición, cambio de solución, observaciones y nutrición con descuento de inventario.
 - Historial, inventario, configuración de sistema/asignaciones/fuentes de datos y gráfico Canvas de humedad.
