@@ -4,6 +4,7 @@ import { constants } from "node:fs";
 import test from "node:test";
 import {
   createEyeballz1DwcTemplate,
+  predefinedTemplates,
   validateTemplate,
 } from "../js/template.js";
 import {
@@ -288,10 +289,12 @@ test("los fondos PWM locales cubren todas las etapas y el panel usa el conector"
   assert.doesNotMatch(panel, /Importar lecturas JSON/);
   assert.match(settings, /Importar lecturas JSON \(respaldo\)/);
   assert.match(html, /welcome-ai-template/);
-  assert.match(html, /start-example-1-dwc/);
-  assert.match(html, /download-template-1-dwc/);
-  assert.match(settings, /settings-download-template-1-dwc/);
-  assert.match(app, /loadEyeballz1DwcTemplate/);
+  assert.match(html, /id="predefined-templates"/);
+  assert.doesNotMatch(html, /start-example-1-dwc|download-template-1-dwc/);
+  assert.match(settings, /settings-predefined-templates/);
+  assert.doesNotMatch(settings, /settings-download-template-1-dwc/);
+  assert.match(app, /loadPredefinedTemplate/);
+  assert.match(app, /renderPredefinedTemplateSelector/);
   assert.match(app, /createSonoffHomeAssistant/);
 });
 
@@ -379,6 +382,87 @@ test("ofrece Eyeballz 1 DWC con la misma tabla y tareas de una sola unidad", asy
     fourCultivation.tareas.find((task) => task.titulo === "Comprobar aireadores")?.descripcion,
     "Confirmar aireación de las cuatro piedras.",
   );
+});
+test("la plantilla mixta conserva la receta Verdeagua y separa Eyeballz de Cake Crasher por DWC", async () => {
+  const [fourDwc, mixed] = await Promise.all([
+    read("examples/eyeballz-4-dwc.example.json").then(JSON.parse),
+    read("examples/eyeballz-cake-crasher-4-dwc.example.json").then(JSON.parse),
+  ]);
+  assert.equal(validateTemplate(mixed), mixed);
+  assert.equal(mixed.id, "eyeballz-cake-crasher-4-dwc-independientes");
+  assert.equal(mixed.configuracion.dwcs.length, 4);
+  assert.equal(mixed.configuracion.plantas.length, 4);
+  assert.equal(mixed.configuracion.asignacionesIniciales.length, 4);
+  assert.ok(mixed.configuracion.dwcs.every((dwc) =>
+    dwc.capacidadNominalLitros === 20 && dwc.volumenTrabajoLitros === 16,
+  ));
+  assert.deepEqual(mixed.configuracion.plan.semanas, fourDwc.configuracion.plan.semanas);
+  assert.deepEqual(mixed.configuracion.equipos, fourDwc.configuracion.equipos);
+  assert.deepEqual(mixed.configuracion.fuentesVariables, fourDwc.configuracion.fuentesVariables);
+  assert.deepEqual(mixed.configuracion.inventario, fourDwc.configuracion.inventario);
+  const plantsByDwc = new Map(
+    mixed.configuracion.asignacionesIniciales.map((assignment) => [
+      assignment.dwcId,
+      mixed.configuracion.plantas.find((plant) => plant.id === assignment.plantaId),
+    ]),
+  );
+  assert.equal(plantsByDwc.get("dwc-1").variedad, "Eyeballz");
+  assert.equal(plantsByDwc.get("dwc-1").banco, "Ripper Seeds");
+  assert.deepEqual(
+    ["dwc-2", "dwc-3", "dwc-4"].map((dwcId) => plantsByDwc.get(dwcId).variedad),
+    ["Cake Crasher", "Cake Crasher", "Cake Crasher"],
+  );
+  assert.ok(
+    ["dwc-2", "dwc-3", "dwc-4"].every(
+      (dwcId) => plantsByDwc.get(dwcId).banco === "Shuga Seeds",
+    ),
+  );
+  const trace = mixed.configuracion.procedenciaPlan;
+  assert.equal(trace.receta.tipo, "obligatoria");
+  assert.equal(trace.variedades.length, 2);
+  const eyeballz = trace.variedades.find((variety) => variety.id === "eyeballz");
+  const cake = trace.variedades.find((variety) => variety.id === "cake-crasher");
+  assert.equal(
+    eyeballz.url,
+    "https://www.ripperseeds.com/es/feminizadas/eyeballz-semillas-feminizadas-de-marihuana",
+  );
+  assert.equal(
+    cake.url,
+    "https://www.tiendathc.com/productos/cake-crasher-x3-shuga-seeds/",
+  );
+  assert.match(cake.datos, /feminizada.*fotoperiódica.*50\/50.*60–65/i);
+  assert.ok(trace.variedades.every((variety) => /63 días.*manual.*DWC.*planta/i.test(variety.notaCompatibilidad)));
+  assert.match(trace.advertenciaMezcla, /receta Verdeagua.*cada DWC.*independiente/i);
+  assert.equal(trace.cosecha.requiereConfirmacionManualPorDwcYPlanta, true);
+  assert.equal(trace.cosecha.diasEntreCambioYCosecha, 63);
+  assert.match(trace.evidenciaCultivadores.nota, /No se afirma una receta DWC específica.*evidencia suficiente/i);
+});
+test("el selector de plantillas reutilizable reemplaza botones sueltos sin requerir un formulario", async () => {
+  const [html, app, settings, selector, css, modal] = await Promise.all([
+    read("index.html"),
+    read("js/app.js"),
+    read("js/ui/pages/configuracion.js"),
+    read("js/features/plantillas-predefinidas.js"),
+    read("styles.css"),
+    read("js/ui/modal.js"),
+  ]);
+  assert.equal(predefinedTemplates.length, 3);
+  assert.deepEqual(
+    predefinedTemplates.map((template) => template.key),
+    ["eyeballz-4-dwc", "eyeballz-1-dwc", "eyeballz-cake-crasher-4-dwc"],
+  );
+  assert.match(html, /id="predefined-templates" class="primary" aria-haspopup="dialog"/);
+  assert.match(html, /<dialog id="modal" aria-labelledby="modal-title">/);
+  assert.match(settings, /id="settings-predefined-templates"/);
+  assert.match(app, /function openPredefinedTemplates/);
+  assert.match(app, /data-predefined-create/);
+  assert.match(app, /data-predefined-download/);
+  assert.match(selector, /type="button" class="primary" data-predefined-create/);
+  assert.match(selector, /type="button" class="secondary" data-predefined-download/);
+  assert.ok(predefinedTemplates.some((template) => template.title === "Eyeballz + Cake Crasher — 4 DWC independientes"));
+  assert.match(css, /\.template-grid/);
+  assert.match(css, /\.template-card/);
+  assert.match(modal, /dialog\.addEventListener\("cancel"/);
 });
 test("rechaza copias de seguridad incompletas", () => {
   assert.throws(

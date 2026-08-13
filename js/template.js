@@ -1,8 +1,19 @@
-/** Carga la plantilla demostrativa desde una ruta estática, sin bundler. */
-export async function loadEyeballzTemplate() {
-  const response = await fetch("examples/eyeballz-4-dwc.example.json");
-  if (!response.ok) throw new Error("No se pudo cargar la plantilla Eyeballz.");
+/** Carga plantillas estáticas sin bundler, desde el mismo origen de la app. */
+async function loadTemplate(path, name) {
+  const response = await fetch(path);
+  if (!response.ok) throw new Error(`No se pudo cargar la plantilla ${name}.`);
   return response.json();
+}
+
+export async function loadEyeballzTemplate() {
+  return loadTemplate("examples/eyeballz-4-dwc.example.json", "Eyeballz");
+}
+
+export async function loadEyeballzCakeCrasherTemplate() {
+  return loadTemplate(
+    "examples/eyeballz-cake-crasher-4-dwc.example.json",
+    "Eyeballz + Cake Crasher",
+  );
 }
 
 /**
@@ -48,6 +59,49 @@ export function createEyeballz1DwcTemplate(referenceTemplate) {
 
 export async function loadEyeballz1DwcTemplate() {
   return createEyeballz1DwcTemplate(await loadEyeballzTemplate());
+}
+
+export const predefinedTemplates = Object.freeze([
+  {
+    key: "eyeballz-4-dwc",
+    title: "Eyeballz — 4 DWC independientes",
+    description: "Cuatro plantas Eyeballz, una por DWC de 16 L de trabajo.",
+    facts: ["4 DWC · 16 L c/u", "4 × Eyeballz · Ripper Seeds"],
+    fileName: "eyeballz-4-dwc.example.json",
+  },
+  {
+    key: "eyeballz-1-dwc",
+    title: "Eyeballz — 1 DWC independiente",
+    description: "Una planta Eyeballz y un DWC de 16 L de trabajo.",
+    facts: ["1 DWC · 16 L", "1 × Eyeballz · Ripper Seeds"],
+    fileName: "eyeballz-1-dwc.example.json",
+  },
+  {
+    key: "eyeballz-cake-crasher-4-dwc",
+    title: "Eyeballz + Cake Crasher — 4 DWC independientes",
+    description:
+      "Una Eyeballz y tres Cake Crasher; la receta compartida queda ajustable por DWC.",
+    facts: [
+      "4 DWC · 16 L c/u",
+      "1 × Eyeballz · Ripper Seeds",
+      "3 × Cake Crasher · Shuga Seeds",
+    ],
+    fileName: "eyeballz-cake-crasher-4-dwc.example.json",
+  },
+]);
+
+export async function loadPredefinedTemplate(key) {
+  if (key === "eyeballz-4-dwc") return loadEyeballzTemplate();
+  if (key === "eyeballz-1-dwc") return loadEyeballz1DwcTemplate();
+  if (key === "eyeballz-cake-crasher-4-dwc")
+    return loadEyeballzCakeCrasherTemplate();
+  throw new Error("La plantilla predefinida no existe.");
+}
+
+export function predefinedTemplateFileName(key) {
+  const template = predefinedTemplates.find((item) => item.key === key);
+  if (!template) throw new Error("La plantilla predefinida no existe.");
+  return template.fileName;
 }
 export function validateTemplate(file) {
   if (!file || file.formato !== "asistente-cultivo" || file.version !== 1)

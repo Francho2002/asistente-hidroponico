@@ -1,7 +1,8 @@
 import { loadState, saveState, clearState } from "./storage.js";
 import {
-  loadEyeballz1DwcTemplate,
   loadEyeballzTemplate,
+  loadPredefinedTemplate,
+  predefinedTemplateFileName,
   validateTemplate,
 } from "./template.js";
 import { createHashRouter } from "./ui/router.js";
@@ -13,6 +14,7 @@ import { renderSettingsPage } from "./ui/pages/configuracion.js";
 import { renderPanelPage } from "./ui/pages/panel.js";
 import { createAmbientalFeatures } from "./features/ambiental.js";
 import { buildAiTemplatePrompt, copyTemplatePrompt } from "./features/plantilla-ia.js";
+import { renderPredefinedTemplateSelector } from "./features/plantillas-predefinidas.js";
 import { createSonoffHomeAssistant } from "./features/sonoff-home-assistant.js";
 import { actionForm, createRegistroFeatures } from "./features/registro.js";
 import { createStore } from "./core/store.js";
@@ -279,7 +281,7 @@ function bindSettings() {
   $("#settings-sonoff").onclick = openSonoffConfiguration;
   $("#settings-sonoff-refresh").onclick = refreshSonoff;
   $("#settings-ai-template").onclick = openAiTemplatePrompt;
-  $("#settings-download-template-1-dwc").onclick = downloadEyeballz1DwcTemplate;
+  $("#settings-predefined-templates").onclick = openPredefinedTemplates;
   $("#sync-export").onclick = sincronizacion.exportForOther;
   $("#sync-merge").onclick = sincronizacion.openMerge;
   $("#sync-undo").onclick = sincronizacion.undo;
@@ -337,6 +339,7 @@ function openModal(title, body, { submitLabel = "Guardar", readOnly = false } = 
   $("#modal-submit").textContent = submitLabel;
   $("#modal-submit").hidden = readOnly;
   modal.showModal();
+  requestAnimationFrame(() => modal.querySelector("[data-modal-close]")?.focus());
 }
 function closeModal() {
   modalControls.close();
@@ -380,6 +383,43 @@ async function openAiTemplatePrompt() {
     };
   } catch (error) {
     showToast(error.message || "No se pudo preparar el prompt.");
+  }
+}
+function openPredefinedTemplates() {
+  modalAction = null;
+  openModal(
+    "Plantillas predefinidas",
+    renderPredefinedTemplateSelector(escape),
+    { readOnly: true },
+  );
+  $("#modal-body").querySelectorAll("[data-predefined-create]").forEach((button) => {
+    button.onclick = () => createPredefinedCultivation(button.dataset.predefinedCreate);
+  });
+  $("#modal-body").querySelectorAll("[data-predefined-download]").forEach((button) => {
+    button.onclick = () => downloadPredefinedTemplate(button.dataset.predefinedDownload);
+  });
+}
+async function createPredefinedCultivation(key) {
+  try {
+    const template = await loadPredefinedTemplate(key);
+    await store.add(createCultivation(template));
+    closeModal();
+    await render();
+    showToast(`${template.nombre} creado como cultivo local.`);
+  } catch (error) {
+    showToast(error.message || "No se pudo crear la plantilla seleccionada.");
+  }
+}
+async function downloadPredefinedTemplate(key) {
+  try {
+    const template = await loadPredefinedTemplate(key);
+    downloadJson(
+      predefinedTemplateFileName(key),
+      JSON.stringify(template, null, 2),
+    );
+    showToast("Plantilla JSON descargada.");
+  } catch (error) {
+    showToast(error.message || "No se pudo descargar la plantilla seleccionada.");
   }
 }
 function exportCurrent() {
@@ -436,31 +476,7 @@ async function requestNotifications() {
       : "Notificaciones no autorizadas.",
   );
 }
-$("#start-example").onclick = async () => {
-  const t = await loadEyeballzTemplate();
-  const c = createCultivation(t);
-  await store.add(c);
-  render();
-  showToast("Ejemplo Eyeballz creado.");
-};
-$("#start-example-1-dwc").onclick = async () => {
-  const c = createCultivation(await loadEyeballz1DwcTemplate());
-  await store.add(c);
-  render();
-  showToast("Ejemplo Eyeballz de 1 DWC creado.");
-};
-$("#download-template").onclick = async () =>
-  downloadJson(
-    "eyeballz-4-dwc.example.json",
-    JSON.stringify(await loadEyeballzTemplate(), null, 2),
-  );
-async function downloadEyeballz1DwcTemplate() {
-  downloadJson(
-    "eyeballz-1-dwc.example.json",
-    JSON.stringify(await loadEyeballz1DwcTemplate(), null, 2),
-  );
-}
-$("#download-template-1-dwc").onclick = downloadEyeballz1DwcTemplate;
+$("#predefined-templates").onclick = openPredefinedTemplates;
 $("#welcome-ai-template").onclick = openAiTemplatePrompt;
 $("#import-file").onchange = (e) => importFile(e.target.files[0]);
 $("#welcome-import").onchange = (e) => importFile(e.target.files[0]);

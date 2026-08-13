@@ -33,7 +33,7 @@ Abrí `http://localhost:3000`. No abras `index.html` directamente: la plantilla 
 
 ## Funciones incluidas
 
-- Ejemplo e importación de la plantilla Eyeballz con 4 DWC independientes y asignaciones Planta↔DWC; también incluye una variante descargable/importable de 1 DWC derivada de la misma receta 0–14.
+- Selector de **Plantillas predefinidas**: Eyeballz con 4 DWC, Eyeballz con 1 DWC y Eyeballz + Cake Crasher con 4 DWC. Cada una puede crearse localmente o descargarse como JSON editable/importable.
 - Plan confirmado de semanas 0 a 14, tareas, alertas y notificaciones del navegador.
 - Mediciones agrupadas de pH, EC y temperatura por DWC; reposición, cambio de solución, observaciones y nutrición con descuento de inventario.
 - Historial, inventario, configuración de sistema/asignaciones/fuentes de datos y gráfico Canvas de humedad.
@@ -48,7 +48,7 @@ La versión pública se publica con GitHub Pages: [francho2002.github.io/asisten
 
 ## Plantillas JSON e IA
 
-La plantilla demostrativa está en [examples/eyeballz-4-dwc.example.json](examples/eyeballz-4-dwc.example.json). En la bienvenida o en **Configuración**, elegí **Crear plantilla con IA**: el botón copia un prompt que pide una respuesta JSON estricta y usa Eyeballz solo como referencia de estructura. Revisá el JSON antes de importarlo.
+Las plantillas demostrativas están en [examples/eyeballz-4-dwc.example.json](examples/eyeballz-4-dwc.example.json) y [examples/eyeballz-cake-crasher-4-dwc.example.json](examples/eyeballz-cake-crasher-4-dwc.example.json). En la bienvenida o en **Configuración**, abrí **Plantillas predefinidas** para crear o descargar cualquiera; **Crear plantilla con IA** copia un prompt que pide una respuesta JSON estricta y usa Eyeballz solo como referencia de estructura. Revisá el JSON antes de importarlo.
 
 Las lecturas JSON son un respaldo manual: se importan desde **Configuración** y pueden ser una lectura, un arreglo, o un objeto con `readings`; cada lectura usa `temperatura`/`temperature`, `humedad`/`humidity` y una fecha opcional.
 

@@ -62,16 +62,10 @@
             permanecen en tu dispositivo.
           </p>
           <div class="actions">
-            <button id="start-example" class="primary">
-              Abrir ejemplo Eyeballz</button
-            ><button id="start-example-1-dwc" class="secondary">
-              Abrir ejemplo 1 DWC</button
+            <button id="predefined-templates" class="primary" aria-haspopup="dialog">
+              Plantillas predefinidas</button
             ><button id="welcome-ai-template" class="secondary">
               Crear plantilla con IA</button
-            ><button id="download-template" class="secondary">
-              Descargar plantilla</button
-            ><button id="download-template-1-dwc" class="secondary">
-              Descargar plantilla 1 DWC</button
             ><label class="secondary file-button"
               >Importar archivo<input
                 id="welcome-import"
@@ -93,7 +87,7 @@
         <div id="route-stage" class="route-stage"></div>
       </section>
     </main>
-    <dialog id="modal">
+    <dialog id="modal" aria-labelledby="modal-title">
       <form id="modal-form">
         <header>
           <h2 id="modal-title"></h2>

@@ -166,6 +166,13 @@ main { width: min(1120px, calc(100% - 2rem)); margin: auto; padding: 2rem 0 4rem
 .connector-status.error { color: var(--danger); }
 .connector-status.connecting { color: #9fb8f8; }
 .modal-note { color: var(--muted); font-size: .87rem; }
+.template-grid { display: grid; gap: .75rem; margin-top: 1rem; }
+.template-card { padding: 1rem; border: 1px solid var(--line); border-radius: .75rem; background: var(--surface-2); }
+.template-card h3 { margin: .2rem 0 .35rem; color: var(--title); font-size: 1rem; }
+.template-card > p:not(.eyebrow) { margin: 0; color: var(--muted); font-size: .87rem; }
+.template-facts { display: flex; flex-wrap: wrap; gap: .35rem .75rem; margin: .75rem 0; padding-left: 1.05rem; color: var(--text); font-size: .82rem; }
+.template-card-actions { flex-wrap: wrap; }
+.template-warning { margin: .85rem 0 0; padding: .65rem .7rem; border-left: 3px solid var(--accent); border-radius: .35rem; background: rgb(29 78 216 / .09); color: var(--text); font-size: .82rem; }
 .prompt-field { display: grid; gap: .35rem; color: var(--muted); font-size: .82rem; margin-top: 1rem; }
 .prompt-field textarea { min-height: 18rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .76rem; line-height: 1.45; }
 .sync-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; margin: 1rem 0; }
